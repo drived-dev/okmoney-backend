@@ -1,0 +1,34 @@
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - '**' # This pattern matches any branch to trigger the workflow on PR
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18] # You can specify multiple versions if needed
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build NestJS project
+        run: npm run build
+
+      - name: Run tests (optional)
+        run: npm test
