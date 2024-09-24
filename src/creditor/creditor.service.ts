@@ -1,45 +1,107 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCreditorDto } from './dto/create-creditor.dto';
-import { UpdateCreditorDto } from './dto/update-creditor.dto';
 import { FirebaseRepository } from 'src/firebase/firebase.service';
+import { UpdateCreditorDto } from './dto/update-creditor.dto';
+import { Creditor } from './entities/creditor.entity';
 
-// TODO: change collection name to singular
-// TODO: add DTO
-// TODO: use zod for validation
+// TODO: add logger for cause errors
 @Injectable()
 export class CreditorService {
   constructor(private firebaseRepository: FirebaseRepository) {
     this.firebaseRepository.collection =
-      this.firebaseRepository.db.collection('creditors');
+      this.firebaseRepository.db.collection('creditor');
   }
 
-  create(createCreditorDto: CreateCreditorDto) {
-    return 'This action adds a new creditor';
+  async findById(
+    id: string,
+  ): Promise<
+    FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>
+  > {
+    const docRef = this.firebaseRepository.collection.doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) {
+      throw new NotFoundException('Creditor Not Found', {
+        cause: `Creditor with this ${id} does not exist`,
+      });
+    }
+    return docRef;
   }
 
-  async findAll() {
-    const snapshot = await this.firebaseRepository.db
-      .collection('creditor')
-      .get();
-    // const snapshot = await this.firebaseRepository.collection.get();
-    const creditors = snapshot.docs.map((doc) => doc.data());
-    return creditors;
-    // return `This action returns all creditor`;
+  async create(createCreditorDto: CreateCreditorDto): Promise<Creditor> {
+    // TODO: handle email or something already exists?
+    try {
+      const docRef = await this.firebaseRepository.collection.add({
+        ...createCreditorDto,
+        created_at: Date.now(),
+        updated_at: Date.now(),
+      });
+      const data = (await docRef.get()).data();
+      return { id: docRef.id, ...data };
+    } catch (err) {
+      console.error(err);
+      throw new InternalServerErrorException(
+        {
+          error: 'Fail to create new user',
+        },
+        { cause: err.message },
+      );
+    }
   }
 
-  async findOne(id: string) {
-    const snapshot = await this.firebaseRepository.collection
-      .doc(String(id))
-      .get();
-    return snapshot.data();
-    // return `This action returns a #${id} creditor`;
+  async findAll(): Promise<Creditor[]> {
+    try {
+      const snapshot = await this.firebaseRepository.collection.get();
+      const creditors = snapshot.docs.map((doc) => doc.data());
+      return creditors;
+    } catch (err) {
+      throw new InternalServerErrorException('Failed to find creditors', {
+        cause: err.message,
+      });
+    }
   }
 
-  update(id: number, updateCreditorDto: UpdateCreditorDto) {
-    return `This action updates a #${id} creditor`;
+  async findOne(id: string): Promise<Creditor> {
+    try {
+      const docRef = await this.findById(id);
+      const data = (await docRef.get()).data();
+      return data;
+    } catch (err) {
+      throw new InternalServerErrorException('Failed to find creditor', {
+        cause: err.message,
+      });
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} creditor`;
+  async update(id: string, updateCreditorDto: UpdateCreditorDto) {
+    try {
+      const docRef = await this.findById(id);
+
+      await docRef.update({
+        ...updateCreditorDto,
+        updated_at: Date.now(),
+      });
+      return { message: 'Creditor updated successfully' };
+    } catch (err) {
+      throw new InternalServerErrorException('Failed to update creditor', {
+        cause: err.message,
+      });
+    }
+  }
+
+  async remove(id: string) {
+    try {
+      const docRef = await this.findById(id);
+
+      await docRef.delete();
+      return { message: 'Creditor deleted successfully' };
+    } catch (err) {
+      throw new InternalServerErrorException('Failed to delete creditor', {
+        cause: err.message,
+      });
+    }
   }
 }
