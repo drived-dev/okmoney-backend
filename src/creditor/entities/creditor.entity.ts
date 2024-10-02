@@ -1,20 +1,28 @@
 import { z } from 'zod';
+import { RolePackage } from './rolePackage.entity';
+
+const e164PhoneNumber = /^\+[1-9]\d{1,14}$/;
 
 // TODO: Change optional based on data sent from FRONTEND
 // TODO: Define API Schema for Creditor
-// Define the Zod schema for Creditor
 export const CreditorSchema = z.object({
-  id: z.string().optional(), // Firestore auto-generates the ID, so it can be optional for creation
+  id: z.string().optional(),
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
   store_name: z.string().min(1, 'Store name is required'),
-  phone_number: z.string().min(1, 'Phone number is required'),
+  phone_number: z
+    .string()
+    .min(1, 'Phone number is required')
+    .regex(
+      e164PhoneNumber,
+      'Phone number must be in E.164 format (+66819009000)',
+    ),
+  role_package: z.nativeEnum(RolePackage),
   email: z
     .string()
     .email('Invalid email format')
     .transform((str) => str.toLowerCase())
     .optional(),
-  role_package: z.number().int(),
   created_at: z.number().int().optional(),
   updated_at: z.number().int().optional(),
   last_login: z.number().int().optional(),
@@ -24,5 +32,4 @@ export const CreditorSchema = z.object({
   profile_image: z.string().optional(),
 });
 
-// TypeScript type inferred from the schema
 export type Creditor = z.infer<typeof CreditorSchema>;
