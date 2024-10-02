@@ -6,40 +6,81 @@ import {
   Patch,
   Param,
   Delete,
+  BadRequestException,
 } from '@nestjs/common';
 import { GuarantorService } from './guarantor.service';
-import { CreateGuarantorDto } from './dto/create-guarantor.dto';
-import { UpdateGuarantorDto } from './dto/update-guarantor.dto';
+import {
+  CreateGuarantorDto,
+  CreateGuarantorScehma,
+} from './dto/create-guarantor.dto';
+import {
+  UpdateGuarantorDto,
+  UpdateGuaratorSchema,
+} from './dto/update-guarantor.dto';
 
 @Controller('guarantor')
 export class GuarantorController {
   constructor(private readonly guarantorService: GuarantorService) {}
 
   @Post()
-  create(@Body() createGuarantorDto: CreateGuarantorDto) {
-    return this.guarantorService.create(createGuarantorDto);
+  async create(@Body() createGuarantorDto: CreateGuarantorDto) {
+    const parseResult = CreateGuarantorScehma.safeParse(createGuarantorDto);
+    if (!parseResult.success) {
+      throw new BadRequestException(
+        {
+          error: parseResult.error.errors,
+        },
+        { cause: parseResult.error.errors },
+      );
+    }
+    const guarator = await this.guarantorService.create(parseResult.data);
+    return guarator;
   }
 
   @Get()
-  findAll() {
-    return this.guarantorService.findAll();
+  async findAll() {
+    const guarantors = await this.guarantorService.findAll();
+    return guarantors;
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.guarantorService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    if (!id) {
+      throw new BadRequestException('Id is required');
+    }
+    const guarantor = await this.guarantorService.findOne(id);
+    return guarantor;
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateGuarantorDto: UpdateGuarantorDto,
   ) {
-    return this.guarantorService.update(+id, updateGuarantorDto);
+    if (!id) {
+      throw new BadRequestException('Id is required');
+    }
+
+    const parseResult = UpdateGuaratorSchema.safeParse(updateGuarantorDto);
+    if (!parseResult.success) {
+      throw new BadRequestException(
+        {
+          error: parseResult.error.errors,
+        },
+        { cause: parseResult.error.errors },
+      );
+    }
+    const status = await this.guarantorService.update(id, parseResult.data);
+    return status;
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.guarantorService.remove(+id);
+  async remove(@Param('id') id: string) {
+    if (!id) {
+      throw new BadRequestException('Id is required');
+    }
+
+    const status = await this.guarantorService.remove(id);
+    return status;
   }
 }

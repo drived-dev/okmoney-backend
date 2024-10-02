@@ -1,4 +1,5 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateGuarantorDto } from './create-guarantor.dto';
+import { z } from 'zod';
+import { GuarantorSchema } from '../entities/guarantor.entity';
 
-export class UpdateGuarantorDto extends PartialType(CreateGuarantorDto) {}
+export const UpdateGuaratorSchema = GuarantorSchema.partial();
+export type UpdateGuarantorDto = z.infer<typeof UpdateGuaratorSchema>;
