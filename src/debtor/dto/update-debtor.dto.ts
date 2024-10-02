@@ -1,4 +1,5 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateDebtorDto } from './create-debtor.dto';
+import { z } from 'zod';
+import { DebtorSchema } from '../entities/debtor.entity';
 
-export class UpdateDebtorDto extends PartialType(CreateDebtorDto) {}
+export const UpdateDebtorSchema = DebtorSchema.partial();
+export type UpdateDebtorDto = z.infer<typeof UpdateDebtorSchema>;
