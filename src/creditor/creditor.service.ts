@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateCreditorDto } from './dto/create-creditor.dto';
-import { FirebaseRepository } from 'src/firebase/firebase.service';
+import { FirebaseRepository } from '../firebase/firebase.service';
 import { UpdateCreditorDto } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
 
