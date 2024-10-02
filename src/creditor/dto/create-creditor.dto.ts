@@ -2,12 +2,12 @@ import { z } from 'zod';
 import { CreditorSchema } from '../entities/creditor.entity';
 
 export const CreateCreditorSchema = CreditorSchema.pick({
-  first_name: true,
-  last_name: true,
-  store_name: true,
-  phone_number: true,
+  firstName: true,
+  lastName: true,
+  storeName: true,
+  phoneNumber: true,
   email: true,
-  role_package: true,
+  rolePackage: true,
 });
 
 export type CreateCreditorDto = z.infer<typeof CreateCreditorSchema>;

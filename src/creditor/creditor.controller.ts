@@ -49,10 +49,7 @@ export class CreditorController {
     if (!id) {
       throw new BadRequestException('Id is required');
     }
-
-    console.log(`id: ${id}`);
     const creditor = await this.creditorService.findOne(id);
-    console.log(creditor);
     return creditor;
   }
 

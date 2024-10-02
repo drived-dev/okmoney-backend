@@ -4,22 +4,22 @@ const e164PhoneNumberRegex = /^\+[1-9]\d{1,14}$/;
 
 export const DebtorSchema = z.object({
   id: z.number().int().optional(),
-  first_name: z.string().min(1, 'First name is required'),
-  last_name: z.string().optional(),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().optional(),
   nickname: z.string().optional(),
-  phone_number: z
+  phoneNumber: z
     .string()
     .min(1, 'Phone number is required')
     .regex(
       e164PhoneNumberRegex,
       'Phone number must be in E.164 format (+66819009000)',
     ),
-  memo_note: z.string().optional(),
+  memoNote: z.string().optional(),
   address: z.string().optional(),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
-  auto_send_sms: z.boolean().optional(),
-  profile_image: z.string().optional(),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
+  autoSendSms: z.boolean().optional(),
+  profileImage: z.string().optional(),
 });
 
 export type Debtor = z.infer<typeof DebtorSchema>;
