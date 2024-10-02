@@ -4,7 +4,7 @@ import { RolePackage } from './rolePackage.entity';
 const e164PhoneNumberRegex = /^\+[1-9]\d{1,14}$/;
 
 export const CreditorSchema = z.object({
-  id: z.string().optional(),
+  id: z.string(),
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   storeName: z.string().min(1, 'Store name is required'),

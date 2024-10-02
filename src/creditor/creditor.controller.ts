@@ -4,8 +4,8 @@ import {
   Controller,
   Delete,
   Get,
-  Patch,
   Param,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { CreditorService } from './creditor.service';
@@ -29,17 +29,17 @@ export class CreditorController {
     if (!parseResult.success) {
       throw new BadRequestException(
         {
-          error: 'User input for creating Creditor is not valid',
+          error: parseResult.error.errors,
         },
         { cause: parseResult.error.errors },
       );
     }
-    return this.creditorService.create(parseResult.data);
+    const creditor = await this.creditorService.create(parseResult.data);
+    return creditor;
   }
 
   @Get()
   async findAll() {
-    console.log('Find all');
     const creditors = await this.creditorService.findAll();
     return creditors;
   }
@@ -54,7 +54,7 @@ export class CreditorController {
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateCreditorDto: UpdateCreditorDto,
   ) {
@@ -66,20 +66,22 @@ export class CreditorController {
     if (!parseResult.success) {
       throw new BadRequestException(
         {
-          error: 'User input for updating Creditor is not valid',
+          error: parseResult.error.errors,
         },
         { cause: parseResult.error.errors },
       );
     }
-    return this.creditorService.update(id, parseResult.data);
+    const status = await this.creditorService.update(id, parseResult.data);
+    return status;
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     if (!id) {
       throw new BadRequestException('Id is required');
     }
 
-    return this.creditorService.remove(id);
+    const status = await this.creditorService.remove(id);
+    return status;
   }
 }

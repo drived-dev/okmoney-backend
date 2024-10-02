@@ -8,23 +8,24 @@ import { FirebaseRepository } from '../firebase/firebase.service';
 import { UpdateCreditorDto } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
 
+const creditorCollection = 'creditor';
+
 // TODO: add logger for cause errors
 @Injectable()
 export class CreditorService {
-  constructor(private firebaseRepository: FirebaseRepository) {
-    this.firebaseRepository.collection =
-      this.firebaseRepository.db.collection('creditor');
-  }
+  constructor(private firebaseRepository: FirebaseRepository) {}
 
   async findById(
     id: string,
   ): Promise<
     FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>
   > {
-    const docRef = this.firebaseRepository.collection.doc(id);
+    const docRef = this.firebaseRepository.db
+      .collection(creditorCollection)
+      .doc(id);
     const doc = await docRef.get();
     if (!doc.exists) {
-      throw new NotFoundException('Creditor Not Found', {
+      throw new NotFoundException(`Creditor with this ${id} does not exist`, {
         cause: `Creditor with this ${id} does not exist`,
       });
     }
@@ -34,31 +35,35 @@ export class CreditorService {
   async create(createCreditorDto: CreateCreditorDto): Promise<Creditor> {
     // TODO: handle email or something already exists?
     try {
-      const docRef = await this.firebaseRepository.collection.add({
-        ...createCreditorDto,
-        created_at: Date.now(),
-        updated_at: Date.now(),
-      });
+      const docRef = await this.firebaseRepository.db
+        .collection(creditorCollection)
+        .add({
+          ...createCreditorDto,
+          created_at: Date.now(),
+          updated_at: Date.now(),
+        });
       const data = (await docRef.get()).data();
       return { id: docRef.id, ...data };
     } catch (err) {
       console.error(err);
-      throw new InternalServerErrorException(
-        {
-          error: 'Fail to create new user',
-        },
-        { cause: err.message },
-      );
+      throw new InternalServerErrorException(err.message, {
+        cause: err.message,
+      });
     }
   }
 
   async findAll(): Promise<Creditor[]> {
     try {
-      const snapshot = await this.firebaseRepository.collection.get();
-      const creditors = snapshot.docs.map((doc) => doc.data());
+      const snapshot = await this.firebaseRepository.db
+        .collection(creditorCollection)
+        .get();
+      const creditors = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       return creditors;
     } catch (err) {
-      throw new InternalServerErrorException('Failed to find creditors', {
+      throw new InternalServerErrorException(err.message, {
         cause: err.message,
       });
     }
@@ -68,9 +73,9 @@ export class CreditorService {
     try {
       const docRef = await this.findById(id);
       const data = (await docRef.get()).data();
-      return data;
+      return { id: docRef.id, ...data };
     } catch (err) {
-      throw new InternalServerErrorException('Failed to find creditor', {
+      throw new InternalServerErrorException(err.message, {
         cause: err.message,
       });
     }
@@ -86,7 +91,7 @@ export class CreditorService {
       });
       return { message: 'Creditor updated successfully' };
     } catch (err) {
-      throw new InternalServerErrorException('Failed to update creditor', {
+      throw new InternalServerErrorException(err.message, {
         cause: err.message,
       });
     }
@@ -99,7 +104,7 @@ export class CreditorService {
       await docRef.delete();
       return { message: 'Creditor deleted successfully' };
     } catch (err) {
-      throw new InternalServerErrorException('Failed to delete creditor', {
+      throw new InternalServerErrorException(err.message, {
         cause: err.message,
       });
     }
