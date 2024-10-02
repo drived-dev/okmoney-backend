@@ -2,8 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 
+// TODO: remove eslint disable
 @Injectable()
 export class PaymentService {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   create(createPaymentDto: CreatePaymentDto) {
     return 'This action adds a new payment';
   }
@@ -16,6 +18,7 @@ export class PaymentService {
     return `This action returns a #${id} payment`;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update(id: number, updatePaymentDto: UpdatePaymentDto) {
     return `This action updates a #${id} payment`;
   }

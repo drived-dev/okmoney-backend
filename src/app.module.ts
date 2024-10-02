@@ -10,7 +10,15 @@ import { GuarantorModule } from './guarantor/guarantor.module';
 import { PaymentModule } from './payment/payment.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), ScheduleModule.forRoot(), CreditorModule, DebtorModule, LoanModule, GuarantorModule, PaymentModule],
+  imports: [
+    ConfigModule.forRoot(),
+    ScheduleModule.forRoot(),
+    CreditorModule,
+    DebtorModule,
+    LoanModule,
+    GuarantorModule,
+    PaymentModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
