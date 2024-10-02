@@ -6,7 +6,7 @@ const e164PhoneNumberRegex = /^\+[1-9]\d{1,14}$/;
 export const DebtorSchema = z.object({
   id: z.string(),
   firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().optional(),
+  lastName: z.string().min(1, 'Last name is required'),
   nickname: z.string().optional(),
   phoneNumber: z
     .string()
