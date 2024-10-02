@@ -21,9 +21,9 @@ export const CreditorSchema = z.object({
     .email('Invalid email format')
     .transform((str) => str.toLowerCase())
     .optional(),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
-  lastLogin: z.string().datetime().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  lastLogin: z.date().optional(),
   smsAvailable: z.number().int().optional(),
   debtorSlotAvailable: z.number().int().optional(),
   socialProvider: z.number().int().optional(),

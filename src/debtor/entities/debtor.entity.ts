@@ -16,8 +16,8 @@ export const DebtorSchema = z.object({
     ),
   memoNote: z.string().optional(),
   address: z.string().optional(),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
   autoSendSms: z.boolean().optional(),
   profileImage: z.string().optional(),
 });
