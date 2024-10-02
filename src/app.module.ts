@@ -5,9 +5,10 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { CreditorModule } from './creditor/creditor.module';
 import { ConfigModule } from '@nestjs/config';
 import { DebtorModule } from './debtor/debtor.module';
+import { LoanModule } from './loan/loan.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), ScheduleModule.forRoot(), CreditorModule, DebtorModule],
+  imports: [ConfigModule.forRoot(), ScheduleModule.forRoot(), CreditorModule, DebtorModule, LoanModule],
   controllers: [AppController],
   providers: [AppService],
 })
