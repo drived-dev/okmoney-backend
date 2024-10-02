@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateDebtorDto } from './dto/create-debtor.dto';
 import { UpdateDebtorDto } from './dto/update-debtor.dto';
-import { FirebaseRepository } from 'src/firebase/firebase.service';
+import { FirebaseRepository } from '../firebase/firebase.service';
 import { Debtor } from './entities/debtor.entity';
 
 const debtorCollection = 'debtor';
