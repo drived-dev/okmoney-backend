@@ -12,4 +12,4 @@ export const CreateDebtorSchema = DebtorSchema.pick({
   profileImage: true,
 });
 
-export type CreateDebtorDto = z.infer<typeof DebtorSchema>;
+export type CreateDebtorDto = z.infer<typeof CreateDebtorSchema>;
