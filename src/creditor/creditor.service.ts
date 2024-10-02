@@ -39,8 +39,8 @@ export class CreditorService {
         .collection(creditorCollection)
         .add({
           ...createCreditorDto,
-          created_at: Date.now(),
-          updated_at: Date.now(),
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
         });
       const data = (await docRef.get()).data();
       return { id: docRef.id, ...data };
@@ -87,7 +87,7 @@ export class CreditorService {
 
       await docRef.update({
         ...updateCreditorDto,
-        updated_at: Date.now(),
+        updatedAt: Date.now(),
       });
       return { message: 'Creditor updated successfully' };
     } catch (err) {

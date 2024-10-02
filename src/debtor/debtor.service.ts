@@ -20,19 +20,16 @@ export class DebtorService {
         .collection(debtorCollection)
         .add({
           ...createDebtorDto,
-          created_at: Date.now(),
-          updated_at: Date.now(),
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
         });
       const data = (await docRef.get()).data();
       return { id: docRef.id, ...data };
     } catch (err) {
       console.error(err);
-      throw new InternalServerErrorException(
-        {
-          error: 'Fail to create new user',
-        },
-        { cause: err.message },
-      );
+      throw new InternalServerErrorException(err.message, {
+        cause: err.message,
+      });
     }
   }
 
@@ -91,7 +88,7 @@ export class DebtorService {
 
       await docRef.update({
         ...updateDebtorDto,
-        updated_at: Date.now(),
+        updatedAt: Date.now(),
       });
       return { message: 'Debtor updated successfully' };
     } catch (err) {
