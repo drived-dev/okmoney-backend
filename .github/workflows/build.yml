@@ -1,5 +1,19 @@
 name: Build
 
+env:
+  TYPE: ${{ secrets.TYPE }}
+  PROJECT_ID: ${{ secrets.PROJECT_ID }}
+  PRIVATE_KEY_ID: ${{ secrets.PRIVATE_KEY_ID }}
+  PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+  CLIENT_EMAIL: ${{ secrets.CLIENT_EMAIL }}
+  CLIENT_ID: ${{ secrets.CLIENT_ID }}
+  AUTH_URI: ${{ secrets.AUTH_URI }}
+  TOKEN_URI: ${{ secrets.TOKEN_URI }}
+  AUTH_CERT_URL: ${{ secrets.AUTH_CERT_URL }}
+  CLIENT_CERT_URL: ${{ secrets.CLIENT_CERT_URL }}
+  UNIVERSAL_DOMAIN: ${{ secrets.UNIVERSAL_DOMAIN }}
+  PORT: ${{ vars.PORT }}
+
 on:
   pull_request:
     branches:
@@ -32,9 +46,4 @@ jobs:
         run: npm run build
 
       - name: Run tests (optional)
-        run: |
-          export TYPE=${{ secrets.TYPE }}
-          export PROJECT_ID=${{ secrets.PROJECT_ID }}
-          echo ${{ secrets.PROJECT_ID }}
-          echo $TYPE
-          npm test
+        run: npm test
