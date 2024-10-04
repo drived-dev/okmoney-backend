@@ -1,6 +1,6 @@
-import { z } from 'zod';
+import { createZodDto } from '@anatine/zod-nestjs';
 import { CreditorSchema } from '../entities/creditor.entity';
 
 export const UpdateCreditorSchema = CreditorSchema.partial();
 
-export type UpdateCreditorDto = z.infer<typeof UpdateCreditorSchema>;
+export class UpdateCreditorDto extends createZodDto(UpdateCreditorSchema) {}

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
+import { FirebaseModule } from '../firebase/firebase.module';
 import { PaymentService } from './payment.service';
-import { PaymentController } from './payment.controller';
 
 @Module({
-  controllers: [PaymentController],
+  imports: [FirebaseModule],
   providers: [PaymentService],
 })
 export class PaymentModule {}

@@ -1,29 +1,88 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreateLoanDto } from './dto/create-loan.dto';
-import { UpdateLoanDto } from './dto/update-loan.dto';
+import { Loan } from './entities/loan.entity';
 
-// TODO: remove eslint disable
+export const loanCollection = 'loan';
+
+// TODO: handle update via nest admin
 @Injectable()
 export class LoanService {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  create(createLoanDto: CreateLoanDto) {
-    return 'This action adds a new loan';
+  constructor(private firebaseRepository: FirebaseRepository) {}
+
+  async create(createLoanDto: CreateLoanDto): Promise<Loan> {
+    try {
+      const docRef = await this.firebaseRepository.db
+        .collection(loanCollection)
+        .add({
+          ...createLoanDto,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      const data = (await docRef.get()).data();
+      return { id: docRef.id, ...data } as Loan;
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
+      });
+    }
   }
 
-  findAll() {
-    return `This action returns all loan`;
+  async findById(
+    id: string,
+  ): Promise<
+    FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>
+  > {
+    const docRef = this.firebaseRepository.db
+      .collection(loanCollection)
+      .doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) {
+      throw new NotFoundException(`Loan with this ${id} does not exist`, {
+        cause: `Loan with this ${id} does not exist`,
+      });
+    }
+    return docRef;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} loan`;
+  async findAllByUserId(id: string): Promise<Loan[]> {
+    try {
+      const loansSnapshot = await this.firebaseRepository.db
+        .collection(loanCollection)
+        .where('creditorId', '==', id)
+        .get();
+
+      const loans = loansSnapshot.docs.map(
+        (doc) =>
+          ({
+            id: doc.id,
+            ...doc.data(),
+          }) as Loan,
+      );
+      return loans;
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
+      });
+    }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update(id: number, updateLoanDto: UpdateLoanDto) {
-    return `This action updates a #${id} loan`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} loan`;
+  async remove(id: string) {
+    try {
+      const docRef = await this.findById(id);
+      if (!docRef) {
+        return { message: `Loan not found: ${id}` };
+      }
+      await docRef.delete();
+      return { message: 'Loan deleted successfully' };
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
+      });
+    }
   }
 }

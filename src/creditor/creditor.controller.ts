@@ -17,14 +17,38 @@ import {
   UpdateCreditorDto,
   UpdateCreditorSchema,
 } from './dto/update-creditor.dto';
+import { Creditor } from './entities/creditor.entity';
+import {
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiProperty,
+  ApiTags,
+} from '@nestjs/swagger';
 
 // TODO: Create test for all endpoints
+
+class ResponseDto {
+  @ApiProperty({ example: 'Success' })
+  message: string | undefined;
+}
+
+@ApiTags('creditor')
 @Controller('creditor')
 export class CreditorController {
   constructor(private readonly creditorService: CreditorService) {}
 
   @Post()
-  async create(@Body() createCreditorDto: CreateCreditorDto) {
+  @ApiCreatedResponse({
+    type: Creditor,
+    description: 'The record has been successfully created.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+  })
+  async create(
+    @Body() createCreditorDto: CreateCreditorDto,
+  ): Promise<Creditor> {
     const parseResult = CreateCreditorSchema.safeParse(createCreditorDto);
     if (!parseResult.success) {
       throw new BadRequestException(
@@ -39,13 +63,15 @@ export class CreditorController {
   }
 
   @Get()
-  async findAll() {
+  @ApiOkResponse({ type: [Creditor] })
+  async findAll(): Promise<Creditor[]> {
     const creditors = await this.creditorService.findAll();
     return creditors;
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  @ApiOkResponse({ type: Creditor })
+  async findOne(@Param('id') id: string): Promise<Creditor> {
     if (!id) {
       throw new BadRequestException('Id is required');
     }
@@ -54,6 +80,7 @@ export class CreditorController {
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: ResponseDto })
   async update(
     @Param('id') id: string,
     @Body() updateCreditorDto: UpdateCreditorDto,
@@ -76,6 +103,7 @@ export class CreditorController {
   }
 
   @Delete(':id')
+  @ApiOkResponse({ type: ResponseDto })
   async remove(@Param('id') id: string) {
     if (!id) {
       throw new BadRequestException('Id is required');

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { createZodDto } from '@anatine/zod-nestjs';
 import { CreditorSchema } from '../entities/creditor.entity';
 
 export const CreateCreditorSchema = CreditorSchema.pick({
@@ -10,4 +10,4 @@ export const CreateCreditorSchema = CreditorSchema.pick({
   rolePackage: true,
 });
 
-export type CreateCreditorDto = z.infer<typeof CreateCreditorSchema>;
+export class CreateCreditorDto extends createZodDto(CreateCreditorSchema) {}

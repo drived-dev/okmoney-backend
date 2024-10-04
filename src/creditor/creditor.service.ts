@@ -43,11 +43,10 @@ export class CreditorService {
           updatedAt: Date.now(),
         });
       const data = (await docRef.get()).data();
-      return { id: docRef.id, ...data };
-    } catch (err) {
-      console.error(err);
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+      return { id: docRef.id, ...data } as Creditor;
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }
@@ -61,10 +60,10 @@ export class CreditorService {
         id: doc.id,
         ...doc.data(),
       }));
-      return creditors;
-    } catch (err) {
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+      return creditors as Creditor[];
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }
@@ -73,10 +72,10 @@ export class CreditorService {
     try {
       const docRef = await this.findById(id);
       const data = (await docRef.get()).data();
-      return { id: docRef.id, ...data };
-    } catch (err) {
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+      return { id: docRef.id, ...data } as Creditor;
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }
@@ -90,9 +89,9 @@ export class CreditorService {
         updatedAt: Date.now(),
       });
       return { message: 'Creditor updated successfully' };
-    } catch (err) {
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }
@@ -103,9 +102,9 @@ export class CreditorService {
 
       await docRef.delete();
       return { message: 'Creditor deleted successfully' };
-    } catch (err) {
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }

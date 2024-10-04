@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { RolePackage } from './rolePackage.entity';
+import { createZodDto } from '@anatine/zod-nestjs';
 
 const e164PhoneNumberRegex = /^\+[1-9]\d{1,14}$/;
 
@@ -21,13 +22,23 @@ export const CreditorSchema = z.object({
     .email('Invalid email format')
     .transform((str) => str.toLowerCase())
     .optional(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
-  lastLogin: z.date().optional(),
+  createdAt: z.coerce
+    .date()
+    .transform((date) => new Date(date).getTime())
+    .optional(),
+  updatedAt: z.coerce
+    .date()
+    .transform((date) => new Date(date).getTime())
+    .optional(),
+  lastLogin: z.coerce
+    .date()
+    .transform((date) => new Date(date).getTime())
+    .optional(),
   smsAvailable: z.number().int().optional(),
   debtorSlotAvailable: z.number().int().optional(),
   socialProvider: z.number().int().optional(),
   profileImage: z.string().optional(),
 });
 
-export type Creditor = z.infer<typeof CreditorSchema>;
+export class Creditor extends createZodDto(CreditorSchema) {}
+// export type Creditor = z.infer<typeof CreditorSchema>;

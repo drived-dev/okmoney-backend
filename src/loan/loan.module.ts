@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
+import { FirebaseModule } from '../firebase/firebase.module';
 import { LoanService } from './loan.service';
-import { LoanController } from './loan.controller';
 
 @Module({
-  controllers: [LoanController],
+  imports: [FirebaseModule],
   providers: [LoanService],
 })
 export class LoanModule {}
