@@ -30,7 +30,7 @@ import {
 
 class ResponseDto {
   @ApiProperty({ example: 'Success' })
-  message: string;
+  message: string | undefined;
 }
 
 @ApiTags('creditor')

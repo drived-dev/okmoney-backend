@@ -3,19 +3,17 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { FirebaseRepository } from 'src/firebase/firebase.service';
+import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreateLoanDto } from './dto/create-loan.dto';
-import { UpdateLoanDto } from './dto/update-loan.dto';
 import { Loan } from './entities/loan.entity';
 
 export const loanCollection = 'loan';
 
-// TODO: remove eslint disable
+// TODO: handle update via nest admin
 @Injectable()
 export class LoanService {
   constructor(private firebaseRepository: FirebaseRepository) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(createLoanDto: CreateLoanDto): Promise<Loan> {
     try {
       const docRef = await this.firebaseRepository.db
@@ -71,19 +69,6 @@ export class LoanService {
         cause: err?.message,
       });
     }
-  }
-
-  findAll() {
-    return `This action returns all loan`;
-  }
-
-  findOne(id: string) {
-    return `This action returns a #${id} loan`;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update(id: string, updateLoanDto: UpdateLoanDto) {
-    return `This action updates a #${id} loan`;
   }
 
   async remove(id: string) {

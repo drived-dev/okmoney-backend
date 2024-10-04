@@ -3,9 +3,8 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { UpdatePaymentDto } from './dto/update-payment.dto';
-import { FirebaseRepository } from 'src/firebase/firebase.service';
 import { Payment } from './entities/payment.entity';
 
 const paymentCollection = 'payment';
@@ -48,19 +47,6 @@ export class PaymentService {
       });
     }
     return docRef;
-  }
-
-  findAll() {
-    return `This action returns all payment`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} payment`;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update(id: number, updatePaymentDto: UpdatePaymentDto) {
-    return `This action updates a #${id} payment`;
   }
 
   async remove(id: string) {

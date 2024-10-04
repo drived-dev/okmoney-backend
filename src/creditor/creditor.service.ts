@@ -43,7 +43,7 @@ export class CreditorService {
           updatedAt: Date.now(),
         });
       const data = (await docRef.get()).data();
-      return { id: docRef.id, ...data };
+      return { id: docRef.id, ...data } as Creditor;
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
@@ -60,7 +60,7 @@ export class CreditorService {
         id: doc.id,
         ...doc.data(),
       }));
-      return creditors;
+      return creditors as Creditor[];
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
@@ -72,7 +72,7 @@ export class CreditorService {
     try {
       const docRef = await this.findById(id);
       const data = (await docRef.get()).data();
-      return { id: docRef.id, ...data };
+      return { id: docRef.id, ...data } as Creditor;
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,

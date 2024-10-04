@@ -24,7 +24,7 @@ export class GuarantorService {
           updatedAt: Date.now(),
         });
       const data = (await docRef.get()).data();
-      return { id: docRef.id, ...data };
+      return { id: docRef.id, ...data } as Guarantor;
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
@@ -58,7 +58,7 @@ export class GuarantorService {
         id: doc.id,
         ...doc.data(),
       }));
-      return guarantors;
+      return guarantors as Guarantor[];
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
@@ -70,7 +70,7 @@ export class GuarantorService {
     try {
       const docRef = await this.findById(id);
       const data = (await docRef.get()).data();
-      return { id: docRef.id, ...data };
+      return { id: docRef.id, ...data } as Guarantor;
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,

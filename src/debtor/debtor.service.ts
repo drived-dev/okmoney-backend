@@ -3,9 +3,9 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Loan, LoanSchema } from 'src/loan/entities/loan.entity';
-import { LoanService } from 'src/loan/loan.service';
-import { PaymentType } from 'src/payment/entities/payment.entity';
+import { Loan, LoanSchema } from '../loan/entities/loan.entity';
+import { LoanService } from '../loan/loan.service';
+import { PaymentType } from '../payment/entities/payment.entity';
 import { ZodError } from 'zod';
 import { FirebaseRepository } from '../firebase/firebase.service';
 import { PaymentService } from '../payment/payment.service';

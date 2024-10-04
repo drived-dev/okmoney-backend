@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs';
-import { LoanSchema } from 'src/loan/entities/loan.entity';
+import { LoanSchema } from '../../loan/entities/loan.entity';
 import { z } from 'zod';
 import { DebtorSchema } from '../entities/debtor.entity';
 
