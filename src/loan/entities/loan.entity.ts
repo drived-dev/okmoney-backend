@@ -1,3 +1,5 @@
+import { createZodDto } from '@anatine/zod-nestjs';
+import { error } from 'console';
 import { z } from 'zod';
 
 export enum LoanStatus {
@@ -29,7 +31,7 @@ export const LoanSchema = z.object({
   loanTermInterval: z.number().int().min(0, 'Loan term interval is required'),
   interestType: z.nativeEnum(InterestType),
   interestRate: z.number().min(0, 'Interest rate is required'),
-  dueDate: z.date(),
+  dueDate: z.coerce.date(),
   tags: z.string().array(),
 
   debtorId: z.string(),
@@ -37,4 +39,4 @@ export const LoanSchema = z.object({
   guarantorId: z.string().optional(),
 });
 
-export type Loan = z.infer<typeof LoanSchema>;
+export class Loan extends createZodDto(LoanSchema) {}

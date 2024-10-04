@@ -25,10 +25,9 @@ export class GuarantorService {
         });
       const data = (await docRef.get()).data();
       return { id: docRef.id, ...data };
-    } catch (err) {
-      console.error(err);
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }
@@ -60,9 +59,9 @@ export class GuarantorService {
         ...doc.data(),
       }));
       return guarantors;
-    } catch (err) {
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }
@@ -72,9 +71,9 @@ export class GuarantorService {
       const docRef = await this.findById(id);
       const data = (await docRef.get()).data();
       return { id: docRef.id, ...data };
-    } catch (err) {
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }
@@ -91,9 +90,9 @@ export class GuarantorService {
         updatedAt: Date.now(),
       });
       return { message: 'Guarantor updated successfully' };
-    } catch (err) {
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }
@@ -104,9 +103,9 @@ export class GuarantorService {
 
       await docRef.delete();
       return { message: 'Guarantor deleted successfully' };
-    } catch (err) {
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }

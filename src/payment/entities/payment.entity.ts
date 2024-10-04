@@ -1,13 +1,21 @@
+import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 
+export enum PaymentType {
+  EXISTING = 0,
+  CASH = 1,
+  TRANSFER = 2,
+}
+
 export const PaymentSchema = z.object({
-  id: z.string().optional(),
+  id: z.string(),
+  loanId: z.string(),
   amount: z.number().min(0, 'Amount is required'),
-  payment_date: z.date(),
-  payment_type: z.string().optional(),
-  image_url: z.string().optional(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+  paymentDate: z.coerce.date().optional(),
+  paymentType: z.nativeEnum(PaymentType),
+  imageUrl: z.string().optional(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
 });
 
-export type Payment = z.infer<typeof PaymentSchema>;
+export class Payment extends createZodDto(PaymentSchema) {}

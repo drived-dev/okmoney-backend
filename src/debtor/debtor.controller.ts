@@ -1,34 +1,44 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
   BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UsePipes,
 } from '@nestjs/common';
 import { DebtorService } from './debtor.service';
-import { CreateDebtorDto, CreateDebtorSchema } from './dto/create-debtor.dto';
+import {
+  CreateExistingDebtorDto,
+  CreateExistingDebtorSchema,
+  CreateNewDebtorDto,
+  CreateNewDebtorSchema,
+} from './dto/create-debtor.dto';
 import { UpdateDebtorDto, UpdateDebtorSchema } from './dto/update-debtor.dto';
+import { ZodPipe } from '../utils/zodPipe';
 
 @Controller('debtor')
 export class DebtorController {
   constructor(private readonly debtorService: DebtorService) {}
 
-  @Post()
-  async create(@Body() createDebtorDto: CreateDebtorDto) {
-    const parseResult = CreateDebtorSchema.safeParse(createDebtorDto);
-    if (!parseResult.success) {
-      throw new BadRequestException(
-        {
-          error: parseResult.error.errors,
-        },
-        { cause: parseResult.error.errors },
-      );
-    }
-    const debtor = await this.debtorService.create(parseResult.data);
-    return debtor;
+  @Post('new')
+  @UsePipes(new ZodPipe(CreateNewDebtorSchema))
+  async createNew(@Body() createDebtorDto: CreateNewDebtorDto) {
+    console.log(createDebtorDto);
+    let data = await this.debtorService.createWithLoan({
+      ...createDebtorDto,
+      paidAmount: 0,
+    });
+    return data;
+  }
+
+  @Post('existing')
+  @UsePipes(new ZodPipe(CreateExistingDebtorSchema))
+  async createExist(@Body() createDebtorDto: CreateExistingDebtorDto) {
+    let data = await this.debtorService.createWithLoan(createDebtorDto);
+    return data;
   }
 
   @Get()

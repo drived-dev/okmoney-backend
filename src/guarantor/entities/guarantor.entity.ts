@@ -13,8 +13,8 @@ export const GuarantorSchema = z.object({
       e164PhoneNumberRegex,
       'Phone number must be in E.164 format (+66819009000)',
     ),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
 });
 
 export type Guarantor = z.infer<typeof GuarantorSchema>;

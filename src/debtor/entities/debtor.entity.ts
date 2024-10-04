@@ -1,3 +1,4 @@
+import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 
 const e164PhoneNumberRegex = /^\+[1-9]\d{1,14}$/;
@@ -17,10 +18,10 @@ export const DebtorSchema = z.object({
     ),
   memoNote: z.string().optional(),
   address: z.string().optional(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
   autoSendSms: z.boolean().optional(),
   profileImage: z.string().optional(),
 });
 
-export type Debtor = z.infer<typeof DebtorSchema>;
+export class Debtor extends createZodDto(DebtorSchema) {}

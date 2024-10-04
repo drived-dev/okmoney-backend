@@ -44,10 +44,9 @@ export class CreditorService {
         });
       const data = (await docRef.get()).data();
       return { id: docRef.id, ...data };
-    } catch (err) {
-      console.error(err);
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }
@@ -62,9 +61,9 @@ export class CreditorService {
         ...doc.data(),
       }));
       return creditors;
-    } catch (err) {
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }
@@ -74,9 +73,9 @@ export class CreditorService {
       const docRef = await this.findById(id);
       const data = (await docRef.get()).data();
       return { id: docRef.id, ...data };
-    } catch (err) {
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }
@@ -90,9 +89,9 @@ export class CreditorService {
         updatedAt: Date.now(),
       });
       return { message: 'Creditor updated successfully' };
-    } catch (err) {
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }
@@ -103,9 +102,9 @@ export class CreditorService {
 
       await docRef.delete();
       return { message: 'Creditor deleted successfully' };
-    } catch (err) {
-      throw new InternalServerErrorException(err.message, {
-        cause: err.message,
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
   }

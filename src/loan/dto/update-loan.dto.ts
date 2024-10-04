@@ -1,4 +1,5 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateLoanDto } from './create-loan.dto';
+import { createZodDto } from '@anatine/zod-nestjs';
+import { LoanSchema } from '../entities/loan.entity';
 
-export class UpdateLoanDto extends PartialType(CreateLoanDto) {}
+export const UpdateLoanSchema = LoanSchema.partial();
+export class UpdateLoanDto extends createZodDto(UpdateLoanSchema) {}
