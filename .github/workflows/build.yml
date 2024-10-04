@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: testing
 
     strategy:
       matrix:
@@ -31,4 +32,8 @@ jobs:
         run: npm run build
 
       - name: Run tests (optional)
-        run: npm test
+        run: |
+          export TYPE=${{ secrets.TYPE }}
+          echo ${{ secrets.PROJECT_ID }}
+          echo $TYPE
+          npm test
