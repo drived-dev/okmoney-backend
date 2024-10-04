@@ -3,8 +3,10 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Loan } from 'src/loan/entities/loan.entity';
+import { Loan, LoanSchema } from 'src/loan/entities/loan.entity';
 import { LoanService } from 'src/loan/loan.service';
+import { PaymentType } from 'src/payment/entities/payment.entity';
+import { ZodError } from 'zod';
 import { FirebaseRepository } from '../firebase/firebase.service';
 import { PaymentService } from '../payment/payment.service';
 import {
@@ -12,8 +14,7 @@ import {
   CreateExistingDebtorDto,
 } from './dto/create-debtor.dto';
 import { UpdateDebtorDto } from './dto/update-debtor.dto';
-import { Debtor } from './entities/debtor.entity';
-import { PaymentType } from 'src/payment/entities/payment.entity';
+import { Debtor, DebtorSchema } from './entities/debtor.entity';
 
 const debtorCollection = 'debtor';
 
@@ -29,7 +30,10 @@ export class DebtorService {
     const debtor = await this.create(createExistingDebtorDto.debtor);
     let loan: Loan;
     try {
-      loan = await this.loanService.create(createExistingDebtorDto.loan);
+      loan = await this.loanService.create({
+        ...createExistingDebtorDto.loan,
+        debtorId: debtor.id,
+      });
     } catch (err: any) {
       await this.remove(debtor.id);
       throw new InternalServerErrorException(err?.message, {
@@ -114,6 +118,41 @@ export class DebtorService {
       const data = (await docRef.get()).data();
       return { id: docRef.id, ...data } as Debtor;
     } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
+      });
+    }
+  }
+
+  async findLoansWithDebtorDetails(id: string): Promise<any[]> {
+    try {
+      const loans = await this.loanService.findAllByUserId(id);
+
+      const results = await Promise.all(
+        loans.map(async (loan: Loan) => {
+          const debtorSnapshot = await this.firebaseRepository.db
+            .collection(debtorCollection)
+            .doc(loan.debtorId)
+            .get();
+
+          const debtor = debtorSnapshot.exists
+            ? { id: debtorSnapshot.id, ...debtorSnapshot.data() }
+            : null;
+
+          return {
+            loan: LoanSchema.parse(loan),
+            debtor: debtor ? DebtorSchema.parse(debtor) : null,
+          };
+        }),
+      );
+
+      return results;
+    } catch (err: any) {
+      if (err instanceof ZodError) {
+        throw new InternalServerErrorException(err?.errors, {
+          cause: err?.errors,
+        });
+      }
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
       });

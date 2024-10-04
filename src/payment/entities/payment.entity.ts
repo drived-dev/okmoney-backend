@@ -11,11 +11,20 @@ export const PaymentSchema = z.object({
   id: z.string(),
   loanId: z.string(),
   amount: z.number().min(0, 'Amount is required'),
-  paymentDate: z.coerce.date().optional(),
+  paymentDate: z.coerce
+    .date()
+    .transform((date) => new Date(date).getTime())
+    .optional(),
   paymentType: z.nativeEnum(PaymentType),
   imageUrl: z.string().optional(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
+  createdAt: z.coerce
+    .date()
+    .transform((date) => new Date(date).getTime())
+    .optional(),
+  updatedAt: z.coerce
+    .date()
+    .transform((date) => new Date(date).getTime())
+    .optional(),
 });
 
 export class Payment extends createZodDto(PaymentSchema) {}

@@ -9,6 +9,9 @@ import {
   Post,
   UsePipes,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { z } from 'zod';
+import { ZodPipe } from '../utils/zodPipe';
 import { DebtorService } from './debtor.service';
 import {
   CreateExistingDebtorDto,
@@ -17,27 +20,29 @@ import {
   CreateNewDebtorSchema,
 } from './dto/create-debtor.dto';
 import { UpdateDebtorDto, UpdateDebtorSchema } from './dto/update-debtor.dto';
-import { ZodPipe } from '../utils/zodPipe';
 
+@ApiTags('Debtor')
 @Controller('debtor')
 export class DebtorController {
   constructor(private readonly debtorService: DebtorService) {}
 
+  // TODO: get id from token
   @Post('new')
   @UsePipes(new ZodPipe(CreateNewDebtorSchema))
   async createNew(@Body() createDebtorDto: CreateNewDebtorDto) {
     console.log(createDebtorDto);
-    let data = await this.debtorService.createWithLoan({
+    const data = await this.debtorService.createWithLoan({
       ...createDebtorDto,
       paidAmount: 0,
     });
     return data;
   }
 
+  // TODO: get id from token
   @Post('existing')
   @UsePipes(new ZodPipe(CreateExistingDebtorSchema))
   async createExist(@Body() createDebtorDto: CreateExistingDebtorDto) {
-    let data = await this.debtorService.createWithLoan(createDebtorDto);
+    const data = await this.debtorService.createWithLoan(createDebtorDto);
     return data;
   }
 
@@ -54,6 +59,27 @@ export class DebtorController {
     }
     const debtor = await this.debtorService.findOne(id);
     return debtor;
+  }
+
+  // TODO: get id from token
+  @Get('/mydebtors/:id')
+  async findLoansWithDebtorDetails(@Param('id') id: string) {
+    const debtors = await this.debtorService.findLoansWithDebtorDetails(id);
+    return debtors;
+  }
+
+  @Post('/test')
+  async test(@Body() body: any) {
+    try {
+      const dateNum = z.coerce
+        .date()
+        .transform((date) => new Date(date).getTime());
+      return dateNum.parse(body.dueDate);
+    } catch (err) {
+      console.log(err);
+      throw new BadRequestException(err);
+    }
+    return body;
   }
 
   @Patch(':id')

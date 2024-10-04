@@ -3,12 +3,12 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { FirebaseRepository } from 'src/firebase/firebase.service';
 import { CreateLoanDto } from './dto/create-loan.dto';
 import { UpdateLoanDto } from './dto/update-loan.dto';
-import { FirebaseRepository } from 'src/firebase/firebase.service';
 import { Loan } from './entities/loan.entity';
 
-const loanCollection = 'loan';
+export const loanCollection = 'loan';
 
 // TODO: remove eslint disable
 @Injectable()
@@ -49,6 +49,28 @@ export class LoanService {
       });
     }
     return docRef;
+  }
+
+  async findAllByUserId(id: string): Promise<Loan[]> {
+    try {
+      const loansSnapshot = await this.firebaseRepository.db
+        .collection(loanCollection)
+        .where('creditorId', '==', id)
+        .get();
+
+      const loans = loansSnapshot.docs.map(
+        (doc) =>
+          ({
+            id: doc.id,
+            ...doc.data(),
+          }) as Loan,
+      );
+      return loans;
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
+      });
+    }
   }
 
   findAll() {

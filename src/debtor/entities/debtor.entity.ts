@@ -18,8 +18,14 @@ export const DebtorSchema = z.object({
     ),
   memoNote: z.string().optional(),
   address: z.string().optional(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
+  createdAt: z.coerce
+    .date()
+    .transform((date) => new Date(date).getTime())
+    .optional(),
+  updatedAt: z.coerce
+    .date()
+    .transform((date) => new Date(date).getTime())
+    .optional(),
   autoSendSms: z.boolean().optional(),
   profileImage: z.string().optional(),
 });

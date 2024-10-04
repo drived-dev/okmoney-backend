@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs';
-import { CreateLoanSchema } from 'src/loan/dto/create-loan.dto';
+import { LoanSchema } from 'src/loan/entities/loan.entity';
 import { z } from 'zod';
 import { DebtorSchema } from '../entities/debtor.entity';
 
@@ -9,7 +9,10 @@ export class CreateDebtorDto extends createZodDto(CreateDebtorSchema) {}
 
 export const CreateNewDebtorSchema = z.object({
   debtor: CreateDebtorSchema,
-  loan: CreateLoanSchema,
+  loan: LoanSchema.omit({
+    id: true,
+    debtorId: true,
+  }),
 });
 
 export class CreateNewDebtorDto extends createZodDto(CreateNewDebtorSchema) {}

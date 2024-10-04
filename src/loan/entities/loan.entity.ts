@@ -1,5 +1,4 @@
 import { createZodDto } from '@anatine/zod-nestjs';
-import { error } from 'console';
 import { z } from 'zod';
 
 export enum LoanStatus {
@@ -31,7 +30,7 @@ export const LoanSchema = z.object({
   loanTermInterval: z.number().int().min(0, 'Loan term interval is required'),
   interestType: z.nativeEnum(InterestType),
   interestRate: z.number().min(0, 'Interest rate is required'),
-  dueDate: z.coerce.date(),
+  dueDate: z.coerce.date().transform((date) => new Date(date).getTime()),
   tags: z.string().array(),
 
   debtorId: z.string(),
