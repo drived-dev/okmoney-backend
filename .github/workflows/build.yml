@@ -1,4 +1,4 @@
-name: Build
+name: Build and Test
 
 env:
   TYPE: ${{ secrets.TYPE }}
@@ -45,5 +45,5 @@ jobs:
       - name: Build NestJS project
         run: npm run build
 
-      - name: Run tests (optional)
+      - name: Run tests
         run: npm test
