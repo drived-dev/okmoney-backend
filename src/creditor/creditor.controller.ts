@@ -4,10 +4,23 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   Patch,
   Post,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiProperty,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CreditorService } from './creditor.service';
 import {
   CreateCreditorDto,
@@ -18,13 +31,7 @@ import {
   UpdateCreditorSchema,
 } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
-import {
-  ApiBadRequestResponse,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiProperty,
-  ApiTags,
-} from '@nestjs/swagger';
+import { MockAuthGuard } from 'src/auth/mockAuthGuard';
 
 // TODO: Create test for all endpoints
 
@@ -36,7 +43,23 @@ class ResponseDto {
 @ApiTags('creditor')
 @Controller('creditor')
 export class CreditorController {
+  private readonly logger = new Logger(CreditorController.name);
+
   constructor(private readonly creditorService: CreditorService) {}
+
+  @UseGuards(MockAuthGuard)
+  @Post('profileimage')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadProfileImage(
+    @Req() req: Request & { user: { id: string } },
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!req.user?.id) {
+      throw new BadRequestException('User id is required');
+    }
+    await this.creditorService.uploadProfileImage(file, req.user?.id);
+    return { message: 'Success' };
+  }
 
   @Post()
   @ApiCreatedResponse({

@@ -59,6 +59,16 @@ export class DebtorService {
     }
   }
 
+  async getImage() {
+    const image = await this.firebaseRepository.bucket
+      .file('vicenzo.jpg')
+      .getSignedUrl({
+        action: 'read',
+        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+      });
+    return image;
+  }
+
   async create(createDebtorDto: CreateDebtorDto): Promise<Debtor> {
     try {
       const docRef = await this.firebaseRepository.db
@@ -89,7 +99,7 @@ export class DebtorService {
     console.log('Found:', doc.exists);
     if (!doc.exists) {
       throw new NotFoundException(`Not Found: ${id} does not exist`, {
-        cause: `Debtor with this ${id} does not exist`,
+        cause: `Not Found: ${id} does not exist`,
       });
     }
     return docRef;

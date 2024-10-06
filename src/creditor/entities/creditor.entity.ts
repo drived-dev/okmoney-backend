@@ -41,4 +41,3 @@ export const CreditorSchema = z.object({
 });
 
 export class Creditor extends createZodDto(CreditorSchema) {}
-// export type Creditor = z.infer<typeof CreditorSchema>;

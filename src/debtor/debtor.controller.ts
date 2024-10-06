@@ -10,7 +10,6 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { z } from 'zod';
 import { ZodPipe } from '../utils/zodPipe';
 import { DebtorService } from './debtor.service';
 import {
@@ -66,20 +65,6 @@ export class DebtorController {
   async findLoansWithDebtorDetails(@Param('id') id: string) {
     const debtors = await this.debtorService.findLoansWithDebtorDetails(id);
     return debtors;
-  }
-
-  @Post('/test')
-  async test(@Body() body: any) {
-    try {
-      const dateNum = z.coerce
-        .date()
-        .transform((date) => new Date(date).getTime());
-      return dateNum.parse(body.dueDate);
-    } catch (err) {
-      console.log(err);
-      throw new BadRequestException(err);
-    }
-    return body;
   }
 
   @Patch(':id')
