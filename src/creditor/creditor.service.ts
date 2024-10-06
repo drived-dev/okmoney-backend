@@ -32,25 +32,37 @@ export class CreditorService {
     return docRef;
   }
 
-  async findByEmail(
-    email: string,
+  async checkId(
+    id: string,
   ) {
-    const collectionRef = this.firebaseRepository.db.collection(creditorCollection);
-    const querySnapshot = await collectionRef
-      .where('email', '==', email)
-      .limit(1)  // Limit to one document
-      .get();
+    const docRef = this.firebaseRepository.db
+      .collection(creditorCollection)
+      .doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) {
+      return null;
+    }
+    return docRef;
+  }
 
-    if (querySnapshot.empty) {
-      return null
-      throw new NotFoundException(`Creditor with email ${email} does not exist`, {
-        cause: `Creditor with email ${email} does not exist`,
+  async createWithId(createCreditorDto: CreateCreditorDto, id: string): Promise<Creditor> {
+    // TODO: handle email or something already exists?
+    try {
+      const docRef = await this.firebaseRepository.db
+        .collection(creditorCollection)
+        .doc(id);
+      await docRef.set({
+          ...createCreditorDto,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      const data = (await docRef.get()).data();
+      return { id: id, ...data } as Creditor;
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
       });
     }
-
-    const data = (await querySnapshot.docs[0].ref.get()).data();
-    const docRef = querySnapshot.docs[0].ref;
-    return { id: docRef.id, ...data } as Creditor;
   }
 
   async create(createCreditorDto: CreateCreditorDto): Promise<Creditor> {

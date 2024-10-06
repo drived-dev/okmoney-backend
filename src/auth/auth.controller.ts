@@ -21,23 +21,20 @@ import {
     @Get('google/login')
     googleLogin() {}
   
+
     @UseGuards(GoogleAuthGuard)
     @Get('google/callback')
     async googleCallback(@Req() req, @Res() res) {
         const user = req.user;
-
         if (!user) {
           return res.status(400).send('No user found');
         }
     
-        // Generate JWT token or any other session token
-        const jwt = await this.authService.googleLogin(req);
-        if (typeof jwt === 'string') {
-            // Handle the case where no user is found
-            return res.status(400).send(jwt);
-          }
-        
-        console.log(jwt.accessToken)
-        return res.redirect(`http://localhost:5173?token=${jwt.accessToken}`);
+        const token = await this.authService.googleLogin(req);
+        if (typeof token === 'string') {
+            return res.status(400).send(token);
+        }
+        console.log(token)
+        return res.redirect(`http://localhost:5173?token=${token.accessToken}`);
     }
   }

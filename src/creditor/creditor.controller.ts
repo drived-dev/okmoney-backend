@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { CreditorService } from './creditor.service';
 import {
@@ -25,6 +26,7 @@ import {
   ApiProperty,
   ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 // TODO: Create test for all endpoints
 
@@ -62,6 +64,7 @@ export class CreditorController {
     return creditor;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOkResponse({ type: [Creditor] })
   async findAll(): Promise<Creditor[]> {
