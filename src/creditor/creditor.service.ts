@@ -32,6 +32,27 @@ export class CreditorService {
     return docRef;
   }
 
+  async findByEmail(
+    email: string,
+  ) {
+    const collectionRef = this.firebaseRepository.db.collection(creditorCollection);
+    const querySnapshot = await collectionRef
+      .where('email', '==', email)
+      .limit(1)  // Limit to one document
+      .get();
+
+    if (querySnapshot.empty) {
+      return null
+      throw new NotFoundException(`Creditor with email ${email} does not exist`, {
+        cause: `Creditor with email ${email} does not exist`,
+      });
+    }
+
+    const data = (await querySnapshot.docs[0].ref.get()).data();
+    const docRef = querySnapshot.docs[0].ref;
+    return { id: docRef.id, ...data } as Creditor;
+  }
+
   async create(createCreditorDto: CreateCreditorDto): Promise<Creditor> {
     // TODO: handle email or something already exists?
     try {

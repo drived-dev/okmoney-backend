@@ -8,6 +8,7 @@ import { LoanModule } from './loan/loan.module';
 import { GuarantorModule } from './guarantor/guarantor.module';
 import { PaymentModule } from './payment/payment.module';
 import { CreditorModule } from './creditor/creditor.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CreditorModule } from './creditor/creditor.module';
     LoanModule,
     GuarantorModule,
     PaymentModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],
