@@ -4,12 +4,15 @@ import { ConfigType } from '@nestjs/config';
 import { CreateCreditorDto } from 'src/creditor/dto/create-creditor.dto';
 import { CreditorService } from 'src/creditor/creditor.service';
 import { AuthJwtPayload } from './auth-jwtPayload';
+import refreshJwtConfig from './refresh-jwt.config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
-    private creditorService: CreditorService
+    private creditorService: CreditorService,
+    @Inject(refreshJwtConfig.KEY)
+    private refreshTokenConfig: ConfigType<typeof refreshJwtConfig>,
   ) {}
 
   async validateGoogleUser(googleUser) {
@@ -30,10 +33,12 @@ export class AuthService {
 
     const payload: AuthJwtPayload = { email: req.user.email, sub: req.user.id };
     const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
 
     return {
-        accessToken,
-        user: req.user,
+      user: req.user,
+      accessToken,
+      refreshToken
     };
   }
 
@@ -43,5 +48,14 @@ export class AuthService {
     const user = (await docRef.get()).data();
     if (!user) throw new UnauthorizedException('User not found!');
     return { id: user.id, email: user.email };
+  }
+
+  async refreshToken(req) {
+    const payload: AuthJwtPayload = { email: req.user.email, sub: req.user.id };
+    const accessToken = this.jwtService.sign(payload);
+    return {
+      id: req.user.id,
+      accessToken,
+    };
   }
 }

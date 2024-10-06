@@ -9,13 +9,17 @@ import { FirebaseModule } from 'src/firebase/firebase.module';
 import { ConfigModule } from '@nestjs/config';
 import jwtConfig from './jwt.config';
 import { JwtStrategy } from './jwt.strategy';
+import refreshJwtConfig from './refresh-jwt.config';
+import { RefreshJwtStrategy } from './refresh.strategy';
 
 @Module({
   imports: [
     PassportModule,
     JwtModule.registerAsync(jwtConfig.asProvider()),
     FirebaseModule,
-    ConfigModule.forRoot()
+    ConfigModule.forRoot(),
+    ConfigModule.forFeature(jwtConfig),
+    ConfigModule.forFeature(refreshJwtConfig)
   ],
   providers: [AuthService, GoogleStrategy, CreditorService,
     {
@@ -33,6 +37,7 @@ import { JwtStrategy } from './jwt.strategy';
       },
     },
     JwtStrategy,
+    RefreshJwtStrategy
   ],
   controllers: [AuthController],
 })

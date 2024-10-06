@@ -12,6 +12,7 @@ import {
   import { AuthService } from './auth.service';
   import { AuthGuard } from '@nestjs/passport';
   import { GoogleAuthGuard } from './google.guard';
+import { RefreshAuthGuard } from './refresh-auth.guard';
   
   @Controller('auth')
   export class AuthController {
@@ -36,5 +37,11 @@ import {
         }
         console.log(token)
         return res.redirect(`http://localhost:5173?token=${token.accessToken}`);
+    }
+
+    @UseGuards(RefreshAuthGuard)
+    @Post("refresh")
+    refreshToken(@Req() req) {
+      return this.authService.refreshToken(req);
     }
   }
