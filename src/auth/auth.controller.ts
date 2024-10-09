@@ -8,6 +8,7 @@ import {
     Request,
     Res,
     UseGuards,
+    Query
   } from '@nestjs/common';
   import { AuthService } from './auth.service';
   import { AuthGuard } from '@nestjs/passport';
@@ -22,7 +23,6 @@ import { RefreshAuthGuard } from './refresh-auth.guard';
     @Get('google/login')
     googleLogin() {}
   
-
     @UseGuards(GoogleAuthGuard)
     @Get('google/callback')
     async googleCallback(@Req() req, @Res() res) {
@@ -36,12 +36,20 @@ import { RefreshAuthGuard } from './refresh-auth.guard';
             return res.status(400).send(token);
         }
         console.log(token)
-        return res.redirect(`http://localhost:5173?token=${token.accessToken}`);
+        return res.redirect(`http://localhost:3000/api/auth/test?token=${token.accessToken}&refreshToken=${token.refreshToken}`);
     }
 
     @UseGuards(RefreshAuthGuard)
     @Post("refresh")
     refreshToken(@Req() req) {
       return this.authService.refreshToken(req);
+    }
+
+    @Get("test?")
+    test(
+        @Query('token') token: string,
+        @Query('refreshToken') refreshToken: string,
+    ) {
+        return `Token: ${token}<br>RefreshToken: ${refreshToken}`
     }
   }
