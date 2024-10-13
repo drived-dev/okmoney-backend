@@ -1,7 +1,6 @@
 import {
   Injectable,
   InternalServerErrorException,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { FirebaseRepository } from '../firebase/firebase.service';
@@ -110,27 +109,14 @@ export class CreditorService {
   }
 
   async getProfileImageById(id: string): Promise<string> {
-    const file = this.firebaseRepository.bucket.file(
+    return await this.firebaseRepository.getFileUrl(
       this.generateProfileImagePath(id),
     );
-    const url = (
-      await file.getSignedUrl({
-        action: 'read',
-        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
-      })
-    ).toString();
-    return url;
   }
 
   async removeProfileImageById(id: string) {
     const filePath = this.generateProfileImagePath(id);
-    const isExist = await this.firebaseRepository.bucket
-      .file(filePath)
-      .exists();
-    if (isExist[0] === true) {
-      Logger.log(`Deleting file with filePath: ${filePath}`);
-      await this.firebaseRepository.bucket.file(filePath).delete();
-    }
+    await this.firebaseRepository.safeRemoveFile(filePath);
   }
 
   async remove(id: string) {

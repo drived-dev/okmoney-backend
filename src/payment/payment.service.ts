@@ -16,6 +16,10 @@ export class PaymentService {
 
   constructor(private firebaseRepository: FirebaseRepository) {}
 
+  generatePaymentImagePath(loanId: string, paymentId: string) {
+    return `payment/${loanId}/${paymentId}`;
+  }
+
   async create(
     createPaymentDto: CreatePaymentDto,
     file?: Express.Multer.File,
@@ -28,23 +32,16 @@ export class PaymentService {
           createdAt: Date.now(),
           updatedAt: Date.now(),
         });
-      let data = (await docRef.get()).data();
-
-      console.log(data);
-      console.log('in service!!!!!');
+      const data = (await docRef.get()).data() as Payment;
 
       if (file) {
-        const imageUrl = `payment/${createPaymentDto.loanId}/${docRef.id}`;
+        let imageUrl = this.generatePaymentImagePath(data.loanId, docRef.id);
         await this.firebaseRepository.uploadFile(file, imageUrl);
-
-        await docRef.update({
-          imageUrl,
-        });
-
-        data = (await docRef.get()).data();
+        imageUrl = await this.firebaseRepository.getFileUrl(imageUrl);
+        data.imageUrl = imageUrl;
       }
 
-      return { id: docRef.id, ...data } as Payment;
+      return data;
     } catch (err: any) {
       this.logger.error(err?.message);
       throw new InternalServerErrorException(err?.message, {
@@ -63,6 +60,7 @@ export class PaymentService {
       .doc(id);
     const doc = await docRef.get();
     if (!doc.exists) {
+      this.logger.error(`Payment with this ${id} does not exist`);
       throw new NotFoundException(`Payment with this ${id} does not exist`, {
         cause: `Payment with this ${id} does not exist`,
       });
@@ -72,36 +70,66 @@ export class PaymentService {
 
   async findAll(creditorId: string): Promise<Payment[]> {
     try {
-      console.log('creditorId:', creditorId);
       const snapshot = await this.firebaseRepository.db
         .collection(paymentCollection)
         .where('creditorId', '==', creditorId)
         .orderBy('createdAt', 'desc')
         .get();
-      return snapshot.docs.map((doc) => ({
+      const res = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Payment[];
+
+      // get signed url for images
+      const payments = await Promise.all(
+        res.map(async (payment) => {
+          const imageUrl = this.generatePaymentImagePath(
+            payment.loanId,
+            payment.id,
+          );
+          payment.imageUrl = await this.firebaseRepository.getFileUrl(imageUrl);
+          return payment;
+        }),
+      );
+      return payments;
     } catch (err: any) {
+      this.logger.error(err?.message);
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
       });
     }
   }
 
-  async findAllByLoadId(userId: string, loanId: string): Promise<Payment[]> {
+  async findAllByDebtorId(
+    creditorId: string,
+    debtorId: string,
+  ): Promise<Payment[]> {
     try {
       const snapshot = await this.firebaseRepository.db
         .collection(paymentCollection)
-        .where('userId', '==', userId)
-        .where('loanId', '==', loanId)
+        .where('creditorId', '==', creditorId)
+        .where('debtorId', '==', debtorId)
         .orderBy('createdAt', 'desc')
         .get();
-      return snapshot.docs.map((doc) => ({
+      const res = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Payment[];
+
+      // get signed url for images
+      const payments = await Promise.all(
+        res.map(async (payment) => {
+          const imageUrl = this.generatePaymentImagePath(
+            payment.loanId,
+            payment.id,
+          );
+          payment.imageUrl = await this.firebaseRepository.getFileUrl(imageUrl);
+          return payment;
+        }),
+      );
+      return payments;
     } catch (err: any) {
+      this.logger.error(err?.message);
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
       });
@@ -117,6 +145,7 @@ export class PaymentService {
       await docRef.delete();
       return { message: 'Payment deleted successfully' };
     } catch (err: any) {
+      this.logger.error(err?.message);
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
       });

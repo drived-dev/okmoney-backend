@@ -108,7 +108,6 @@ export class DebtorService {
       .collection(debtorCollection)
       .doc(id);
     const doc = await docRef.get();
-    console.log('Found:', doc.exists);
     if (!doc.exists) {
       throw new NotFoundException(`Not Found: ${id} does not exist`, {
         cause: `Not Found: ${id} does not exist`,
