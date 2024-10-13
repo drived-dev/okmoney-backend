@@ -38,10 +38,10 @@ export class CreditorService {
   }
 
   async uploadProfileImage(file: Express.Multer.File, userId: string) {
-    Logger.log(`Uploading file with id: ${userId}`);
-    await this.firebaseRepository.bucket
-      .file(this.generateProfileImagePath(userId))
-      .save(file.buffer, { contentType: file.mimetype });
+    await this.firebaseRepository.uploadFile(
+      file,
+      this.generateProfileImagePath(userId),
+    );
   }
 
   async create(createCreditorDto: CreateCreditorDto): Promise<Creditor> {

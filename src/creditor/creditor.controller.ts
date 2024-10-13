@@ -32,6 +32,7 @@ import {
 } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
 import { MockAuthGuard } from 'src/auth/mockAuthGuard';
+import { AuthReqType } from 'src/auth/reqType';
 
 // TODO: Create test for all endpoints
 
@@ -51,7 +52,7 @@ export class CreditorController {
   @Post('profileimage')
   @UseInterceptors(FileInterceptor('file'))
   async uploadProfileImage(
-    @Req() req: Request & { user: { id: string } },
+    @Req() req: AuthReqType,
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!req.user?.id) {
