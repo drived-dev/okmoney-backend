@@ -21,8 +21,8 @@ import {
   CreateExistingDebtorSchema,
 } from './dto/create-debtor.dto';
 import { UpdateDebtorDto, UpdateDebtorSchema } from './dto/update-debtor.dto';
-import { MockAuthGuard } from 'src/auth/mockAuthGuard';
-import { AuthReqType } from 'src/auth/reqType';
+import { MockAuthGuard } from '../auth/mockAuthGuard';
+import { AuthReqType } from '../auth/reqType';
 
 @ApiTags('Debtor')
 @Controller('debtor')

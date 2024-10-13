@@ -31,8 +31,8 @@ import {
   UpdateCreditorSchema,
 } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
-import { MockAuthGuard } from 'src/auth/mockAuthGuard';
-import { AuthReqType } from 'src/auth/reqType';
+import { MockAuthGuard } from '../auth/mockAuthGuard';
+import { AuthReqType } from '../auth/reqType';
 
 // TODO: Create test for all endpoints
 

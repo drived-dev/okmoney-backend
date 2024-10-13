@@ -1,8 +1,8 @@
+import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { FirebaseModule } from '../firebase/firebase.module';
 import { CreditorController } from './creditor.controller';
 import { CreditorService } from './creditor.service';
-import { FirebaseModule } from '../firebase/firebase.module';
-import { ConfigModule } from '@nestjs/config';
 
 describe('CreditorController', () => {
   let controller: CreditorController;
