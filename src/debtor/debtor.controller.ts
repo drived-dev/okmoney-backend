@@ -7,40 +7,40 @@ import {
   Param,
   Patch,
   Post,
+  Req,
+  UseGuards,
   UsePipes,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ZodPipe } from '../utils/zodPipe';
 import { DebtorService } from './debtor.service';
 import {
+  BulkCreateDebtorDto,
+  BulkCreateDebtorSchema,
   CreateExistingDebtorDto,
   CreateExistingDebtorSchema,
-  CreateNewDebtorDto,
-  CreateNewDebtorSchema,
 } from './dto/create-debtor.dto';
 import { UpdateDebtorDto, UpdateDebtorSchema } from './dto/update-debtor.dto';
+import { MockAuthGuard } from 'src/auth/mockAuthGuard';
+import { AuthReqType } from 'src/auth/reqType';
 
 @ApiTags('Debtor')
 @Controller('debtor')
 export class DebtorController {
   constructor(private readonly debtorService: DebtorService) {}
 
-  // TODO: get id from token
-  @Post('new')
-  @UsePipes(new ZodPipe(CreateNewDebtorSchema))
-  async createNew(@Body() createDebtorDto: CreateNewDebtorDto) {
-    console.log(createDebtorDto);
-    const data = await this.debtorService.createWithLoan({
-      ...createDebtorDto,
-      paidAmount: 0,
-    });
+  @Post('bulk')
+  @UsePipes(new ZodPipe(BulkCreateDebtorSchema))
+  async createBulk(@Body() bulkCreateDebtorDto: BulkCreateDebtorDto) {
+    const data = await this.debtorService.createBulk(bulkCreateDebtorDto);
     return data;
   }
 
   // TODO: get id from token
-  @Post('existing')
+  @Post()
   @UsePipes(new ZodPipe(CreateExistingDebtorSchema))
-  async createExist(@Body() createDebtorDto: CreateExistingDebtorDto) {
+  async create(@Body() createDebtorDto: CreateExistingDebtorDto) {
+    if (!createDebtorDto.paidAmount) createDebtorDto.paidAmount = 0;
     const data = await this.debtorService.createWithLoan(createDebtorDto);
     return data;
   }
@@ -61,8 +61,10 @@ export class DebtorController {
   }
 
   // TODO: get id from token
-  @Get('/mydebtors/:id')
-  async findLoansWithDebtorDetails(@Param('id') id: string) {
+  @UseGuards(MockAuthGuard)
+  @Get('/mydebtors')
+  async findLoansWithDebtorDetails(@Req() req: AuthReqType) {
+    const id = req.user?.id;
     const debtors = await this.debtorService.findLoansWithDebtorDetails(id);
     return debtors;
   }

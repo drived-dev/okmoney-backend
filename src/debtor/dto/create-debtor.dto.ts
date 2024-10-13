@@ -20,9 +20,16 @@ export class CreateNewDebtorDto extends createZodDto(CreateNewDebtorSchema) {}
 export const CreateExistingDebtorSchema = CreateNewDebtorSchema.extend({
   paidAmount: z
     .number()
-    .min(0, 'Paid amount must be greater than or equal to 0'),
+    .min(0, 'Paid amount must be greater than or equal to 0')
+    .optional(),
 });
 
 export class CreateExistingDebtorDto extends createZodDto(
   CreateExistingDebtorSchema,
 ) {}
+
+export const BulkCreateDebtorSchema = z.object({
+  debtors: CreateExistingDebtorSchema.array(),
+});
+
+export class BulkCreateDebtorDto extends createZodDto(BulkCreateDebtorSchema) {}

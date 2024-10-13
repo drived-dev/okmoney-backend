@@ -3,13 +3,14 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { ZodError } from 'zod';
+import { FirebaseRepository } from '../firebase/firebase.service';
 import { Loan, LoanSchema } from '../loan/entities/loan.entity';
 import { LoanService } from '../loan/loan.service';
 import { PaymentType } from '../payment/entities/payment.entity';
-import { ZodError } from 'zod';
-import { FirebaseRepository } from '../firebase/firebase.service';
 import { PaymentService } from '../payment/payment.service';
 import {
+  BulkCreateDebtorDto,
   CreateDebtorDto,
   CreateExistingDebtorDto,
 } from './dto/create-debtor.dto';
@@ -41,8 +42,10 @@ export class DebtorService {
       });
     }
 
-    if (createExistingDebtorDto.paidAmount === 0) return { debtor, loan };
+    // If new debtor, return
+    if (!createExistingDebtorDto?.paidAmount) return { debtor, loan };
 
+    // Create payment for existing debtor
     try {
       const payment = await this.paymentService.create({
         amount: createExistingDebtorDto.paidAmount,
@@ -59,14 +62,14 @@ export class DebtorService {
     }
   }
 
-  async getImage() {
-    const image = await this.firebaseRepository.bucket
-      .file('vicenzo.jpg')
-      .getSignedUrl({
-        action: 'read',
-        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
-      });
-    return image;
+  async createBulk(bulkCreateDebtorDto: BulkCreateDebtorDto) {
+    const data = await Promise.all(
+      bulkCreateDebtorDto.debtors.map(async (debtor) => {
+        if (!debtor?.paidAmount) debtor.paidAmount = 0;
+        return await this.createWithLoan(debtor);
+      }),
+    );
+    return data;
   }
 
   async create(createDebtorDto: CreateDebtorDto): Promise<Debtor> {
