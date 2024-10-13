@@ -9,9 +9,10 @@ import {
   Post,
   Req,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { MockAuthGuard } from '../auth/mockAuthGuard';
+import { AuthReqType } from '../auth/reqType';
 import { ZodPipe } from '../utils/zodPipe';
 import { DebtorService } from './debtor.service';
 import {
@@ -21,8 +22,6 @@ import {
   CreateExistingDebtorSchema,
 } from './dto/create-debtor.dto';
 import { UpdateDebtorDto, UpdateDebtorSchema } from './dto/update-debtor.dto';
-import { MockAuthGuard } from '../auth/mockAuthGuard';
-import { AuthReqType } from '../auth/reqType';
 
 @ApiTags('Debtor')
 @Controller('debtor')
@@ -31,10 +30,10 @@ export class DebtorController {
 
   @UseGuards(MockAuthGuard)
   @Post('bulk')
-  @UsePipes(new ZodPipe(BulkCreateDebtorSchema))
   async createBulk(
     @Req() req: AuthReqType,
-    @Body() bulkCreateDebtorDto: BulkCreateDebtorDto,
+    @Body(new ZodPipe(BulkCreateDebtorSchema))
+    bulkCreateDebtorDto: BulkCreateDebtorDto,
   ) {
     const data = await this.debtorService.createBulk(
       bulkCreateDebtorDto,
@@ -45,10 +44,10 @@ export class DebtorController {
 
   @UseGuards(MockAuthGuard)
   @Post()
-  @UsePipes(new ZodPipe(CreateExistingDebtorSchema))
   async create(
     @Req() req: AuthReqType,
-    @Body() createDebtorDto: CreateExistingDebtorDto,
+    @Body(new ZodPipe(CreateExistingDebtorSchema))
+    createDebtorDto: CreateExistingDebtorDto,
   ) {
     if (!createDebtorDto.paidAmount) createDebtorDto.paidAmount = 0;
     const data = await this.debtorService.createWithLoan(

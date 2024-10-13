@@ -35,7 +35,7 @@ export class PaymentController {
   @UseInterceptors(FileInterceptor('file'))
   async createPayment(
     @Req() req: AuthReqType,
-    @Body() createPaymentDto: any,
+    @Body() createPaymentDto: any, // TODO: multipart form data send only file or string (JSON is not supported)
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!req.user?.id) {
@@ -73,14 +73,14 @@ export class PaymentController {
 
   // TODO: Make pagination?
   @UseGuards(MockAuthGuard)
-  @Get()
+  @Get('history')
   async findAll(@Req() req: AuthReqType) {
     const payments = await this.paymentService.findAll(req.user.id);
     return payments;
   }
 
   @UseGuards(MockAuthGuard)
-  @Get(':id')
+  @Get('history/debtor/:id')
   async findAllByDebtorId(
     @Req() req: AuthReqType,
     @Param('id') debtorId: string,

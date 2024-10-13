@@ -35,10 +35,9 @@ export class PaymentService {
       const data = (await docRef.get()).data() as Payment;
 
       if (file) {
-        let imageUrl = this.generatePaymentImagePath(data.loanId, docRef.id);
+        const imageUrl = this.generatePaymentImagePath(data.loanId, docRef.id);
         await this.firebaseRepository.uploadFile(file, imageUrl);
-        imageUrl = await this.firebaseRepository.getFileUrl(imageUrl);
-        data.imageUrl = imageUrl;
+        data.imageUrl = await this.firebaseRepository.getFileUrl(imageUrl);
       }
 
       return data;
