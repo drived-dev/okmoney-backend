@@ -22,8 +22,8 @@ import {
   CreateExistingDebtorSchema,
 } from './dto/create-debtor.dto';
 import { UpdateDebtorDto, UpdateDebtorSchema } from './dto/update-debtor.dto';
-import { UpdateLoanDto, UpdateLoanSchema } from 'src/loan/dto/update-loan.dto';
-import { LoanService } from 'src/loan/loan.service';
+import { UpdateLoanDto, UpdateLoanSchema } from '../loan/dto/update-loan.dto';
+import { LoanService } from '../loan/loan.service';
 
 @ApiTags('Debtor')
 @Controller('debtor')
