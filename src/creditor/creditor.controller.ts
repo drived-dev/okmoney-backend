@@ -95,6 +95,7 @@ export class CreditorController {
     return creditor;
   }
 
+  // TODO: get id from token instead
   @Patch(':id')
   @ApiOkResponse({ type: ResponseDto })
   async update(

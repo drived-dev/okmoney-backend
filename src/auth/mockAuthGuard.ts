@@ -6,7 +6,7 @@ export class MockAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
 
     request['user'] = {
-      id: '0hPCKVRpxhLTPGXBXHEh',
+      id: 'KpTkHTPAKvzpUloLhHbJ',
     };
 
     return true;

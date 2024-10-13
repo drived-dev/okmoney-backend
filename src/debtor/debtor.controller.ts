@@ -22,11 +22,16 @@ import {
   CreateExistingDebtorSchema,
 } from './dto/create-debtor.dto';
 import { UpdateDebtorDto, UpdateDebtorSchema } from './dto/update-debtor.dto';
+import { UpdateLoanDto, UpdateLoanSchema } from 'src/loan/dto/update-loan.dto';
+import { LoanService } from 'src/loan/loan.service';
 
 @ApiTags('Debtor')
 @Controller('debtor')
 export class DebtorController {
-  constructor(private readonly debtorService: DebtorService) {}
+  constructor(
+    private readonly debtorService: DebtorService,
+    private readonly loanService: LoanService,
+  ) {}
 
   @UseGuards(MockAuthGuard)
   @Post('bulk')
@@ -84,22 +89,18 @@ export class DebtorController {
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateDebtorDto: UpdateDebtorDto,
+    @Body(new ZodPipe(UpdateDebtorSchema)) updateDebtorDto: UpdateDebtorDto,
   ) {
-    if (!id) {
-      throw new BadRequestException('Id is required');
-    }
+    const status = await this.debtorService.update(id, updateDebtorDto);
+    return status;
+  }
 
-    const parseResult = UpdateDebtorSchema.safeParse(updateDebtorDto);
-    if (!parseResult.success) {
-      throw new BadRequestException(
-        {
-          error: parseResult.error.errors,
-        },
-        { cause: parseResult.error.errors },
-      );
-    }
-    const status = await this.debtorService.update(id, parseResult.data);
+  @Patch('loan/:id')
+  async updateLoan(
+    @Param('id') loanId: string,
+    @Body(new ZodPipe(UpdateLoanSchema)) updateLoanDto: UpdateLoanDto,
+  ) {
+    const status = await this.loanService.update(loanId, updateLoanDto);
     return status;
   }
 

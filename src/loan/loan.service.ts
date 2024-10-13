@@ -6,6 +6,7 @@ import {
 import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreateLoanDto } from './dto/create-loan.dto';
 import { Loan } from './entities/loan.entity';
+import { UpdateLoanDto } from './dto/update-loan.dto';
 
 export const loanCollection = 'loan';
 
@@ -78,6 +79,25 @@ export class LoanService {
           }) as Loan,
       );
       return loans;
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
+      });
+    }
+  }
+
+  async update(
+    loanId: string,
+    updateLoanDto: UpdateLoanDto,
+  ): Promise<{ message: string }> {
+    try {
+      const docRef = await this.findById(loanId);
+
+      await docRef.update({
+        ...updateLoanDto,
+        updatedAt: Date.now(),
+      });
+      return { message: 'Updated successfully' };
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
