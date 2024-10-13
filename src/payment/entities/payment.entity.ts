@@ -10,6 +10,8 @@ export enum PaymentType {
 export const PaymentSchema = z.object({
   id: z.string(),
   loanId: z.string(),
+  creditorId: z.string(),
+  debtorId: z.string(),
   amount: z.number().min(0, 'Amount is required'),
   paymentDate: z.coerce
     .date()

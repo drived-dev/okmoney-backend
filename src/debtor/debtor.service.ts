@@ -54,6 +54,8 @@ export class DebtorService {
       const payment = await this.paymentService.create({
         amount: createExistingDebtorDto.paidAmount,
         loanId: loan.id,
+        debtorId: debtor.id,
+        creditorId: creditorId,
         paymentType: PaymentType.EXISTING,
       });
       return { debtor, loan, payment };

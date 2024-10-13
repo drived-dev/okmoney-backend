@@ -49,6 +49,20 @@ export class LoanService {
     return docRef;
   }
 
+  async findByIdWithData(id: string): Promise<Loan> {
+    const docRef = this.firebaseRepository.db
+      .collection(loanCollection)
+      .doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) {
+      throw new NotFoundException(`Loan with this ${id} does not exist`, {
+        cause: `Loan with this ${id} does not exist`,
+      });
+    }
+    const data = doc.data();
+    return data as Loan;
+  }
+
   async findAllByUserId(id: string): Promise<Loan[]> {
     try {
       const loansSnapshot = await this.firebaseRepository.db

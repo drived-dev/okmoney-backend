@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { FirebaseRepository } from '../firebase/firebase.service';
@@ -9,12 +10,16 @@ import { Payment } from './entities/payment.entity';
 
 const paymentCollection = 'payment';
 
-// TODO: remove eslint disable
 @Injectable()
 export class PaymentService {
+  logger = new Logger(PaymentService.name);
+
   constructor(private firebaseRepository: FirebaseRepository) {}
 
-  async create(createPaymentDto: CreatePaymentDto): Promise<Payment> {
+  async create(
+    createPaymentDto: CreatePaymentDto,
+    file?: Express.Multer.File,
+  ): Promise<Payment> {
     try {
       const docRef = await this.firebaseRepository.db
         .collection(paymentCollection)
@@ -23,9 +28,25 @@ export class PaymentService {
           createdAt: Date.now(),
           updatedAt: Date.now(),
         });
-      const data = (await docRef.get()).data();
+      let data = (await docRef.get()).data();
+
+      console.log(data);
+      console.log('in service!!!!!');
+
+      if (file) {
+        const imageUrl = `payment/${createPaymentDto.loanId}/${docRef.id}`;
+        await this.firebaseRepository.uploadFile(file, imageUrl);
+
+        await docRef.update({
+          imageUrl,
+        });
+
+        data = (await docRef.get()).data();
+      }
+
       return { id: docRef.id, ...data } as Payment;
     } catch (err: any) {
+      this.logger.error(err?.message);
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
       });
@@ -47,6 +68,44 @@ export class PaymentService {
       });
     }
     return docRef;
+  }
+
+  async findAll(creditorId: string): Promise<Payment[]> {
+    try {
+      console.log('creditorId:', creditorId);
+      const snapshot = await this.firebaseRepository.db
+        .collection(paymentCollection)
+        .where('creditorId', '==', creditorId)
+        .orderBy('createdAt', 'desc')
+        .get();
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Payment[];
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
+      });
+    }
+  }
+
+  async findAllByLoadId(userId: string, loanId: string): Promise<Payment[]> {
+    try {
+      const snapshot = await this.firebaseRepository.db
+        .collection(paymentCollection)
+        .where('userId', '==', userId)
+        .where('loanId', '==', loanId)
+        .orderBy('createdAt', 'desc')
+        .get();
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Payment[];
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
+      });
+    }
   }
 
   async remove(id: string) {
