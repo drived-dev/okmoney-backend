@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Logger,
   Param,
@@ -89,5 +90,11 @@ export class PaymentController {
       debtorId,
     );
     return payment;
+  }
+
+  @UseGuards(MockAuthGuard)
+  @Delete(':id')
+  async remove(@Param('id') paymentId: string) {
+    return this.paymentService.remove(paymentId);
   }
 }
