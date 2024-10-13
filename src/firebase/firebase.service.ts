@@ -1,4 +1,4 @@
-import { Bucket } from '@google-cloud/storage';
+import { Bucket, File } from '@google-cloud/storage';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { app } from 'firebase-admin';
@@ -24,9 +24,18 @@ export class FirebaseRepository {
       .save(file.buffer, { contentType: file.mimetype });
   }
 
+  async checkIfFileExist(file: File) {
+    const isExist = await file.exists();
+    return isExist[0];
+  }
+
   // TODO: test what will happen if not exist
   async getFileUrl(filePath: string) {
     const file = this.bucket.file(filePath);
+    const isExist = await this.checkIfFileExist(file);
+    if (!isExist) {
+      return undefined;
+    }
     const url = (
       await file.getSignedUrl({
         action: 'read',
