@@ -12,6 +12,7 @@ export const CreateNewDebtorSchema = z.object({
   loan: LoanSchema.omit({
     id: true,
     debtorId: true,
+    creditorId: true,
   }),
 });
 

@@ -27,13 +27,17 @@ export class DebtorService {
     private paymentService: PaymentService,
   ) {}
 
-  async createWithLoan(createExistingDebtorDto: CreateExistingDebtorDto) {
+  async createWithLoan(
+    createExistingDebtorDto: CreateExistingDebtorDto,
+    creditorId: string,
+  ) {
     const debtor = await this.create(createExistingDebtorDto.debtor);
     let loan: Loan;
     try {
       loan = await this.loanService.create({
         ...createExistingDebtorDto.loan,
         debtorId: debtor.id,
+        creditorId,
       });
     } catch (err: any) {
       await this.remove(debtor.id);
@@ -62,11 +66,14 @@ export class DebtorService {
     }
   }
 
-  async createBulk(bulkCreateDebtorDto: BulkCreateDebtorDto) {
+  async createBulk(
+    bulkCreateDebtorDto: BulkCreateDebtorDto,
+    creditorId: string,
+  ) {
     const data = await Promise.all(
       bulkCreateDebtorDto.debtors.map(async (debtor) => {
         if (!debtor?.paidAmount) debtor.paidAmount = 0;
-        return await this.createWithLoan(debtor);
+        return await this.createWithLoan(debtor, creditorId);
       }),
     );
     return data;

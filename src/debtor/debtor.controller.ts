@@ -29,19 +29,32 @@ import { AuthReqType } from 'src/auth/reqType';
 export class DebtorController {
   constructor(private readonly debtorService: DebtorService) {}
 
+  @UseGuards(MockAuthGuard)
   @Post('bulk')
   @UsePipes(new ZodPipe(BulkCreateDebtorSchema))
-  async createBulk(@Body() bulkCreateDebtorDto: BulkCreateDebtorDto) {
-    const data = await this.debtorService.createBulk(bulkCreateDebtorDto);
+  async createBulk(
+    @Req() req: AuthReqType,
+    @Body() bulkCreateDebtorDto: BulkCreateDebtorDto,
+  ) {
+    const data = await this.debtorService.createBulk(
+      bulkCreateDebtorDto,
+      req.user.id,
+    );
     return data;
   }
 
-  // TODO: get id from token
+  @UseGuards(MockAuthGuard)
   @Post()
   @UsePipes(new ZodPipe(CreateExistingDebtorSchema))
-  async create(@Body() createDebtorDto: CreateExistingDebtorDto) {
+  async create(
+    @Req() req: AuthReqType,
+    @Body() createDebtorDto: CreateExistingDebtorDto,
+  ) {
     if (!createDebtorDto.paidAmount) createDebtorDto.paidAmount = 0;
-    const data = await this.debtorService.createWithLoan(createDebtorDto);
+    const data = await this.debtorService.createWithLoan(
+      createDebtorDto,
+      req.user.id,
+    );
     return data;
   }
 
