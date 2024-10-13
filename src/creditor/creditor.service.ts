@@ -108,7 +108,7 @@ export class CreditorService {
     }
   }
 
-  async getProfileImageById(id: string): Promise<string> {
+  async getProfileImageById(id: string): Promise<string | undefined> {
     return await this.firebaseRepository.getFileUrl(
       this.generateProfileImagePath(id),
     );

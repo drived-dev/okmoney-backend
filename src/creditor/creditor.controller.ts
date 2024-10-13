@@ -21,6 +21,9 @@ import {
   ApiProperty,
   ApiTags,
 } from '@nestjs/swagger';
+import { MockAuthGuard } from '../auth/mockAuthGuard';
+import { AuthReqType } from '../auth/reqType';
+import { ZodPipe } from '../utils/zodPipe';
 import { CreditorService } from './creditor.service';
 import {
   CreateCreditorDto,
@@ -31,8 +34,6 @@ import {
   UpdateCreditorSchema,
 } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
-import { MockAuthGuard } from '../auth/mockAuthGuard';
-import { AuthReqType } from '../auth/reqType';
 
 // TODO: Create test for all endpoints
 
@@ -55,9 +56,6 @@ export class CreditorController {
     @Req() req: AuthReqType,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!req.user?.id) {
-      throw new BadRequestException('User id is required');
-    }
     await this.creditorService.uploadProfileImage(file, req.user?.id);
     return { message: 'Success' };
   }
@@ -71,31 +69,17 @@ export class CreditorController {
     description: 'Bad Request',
   })
   async create(
-    @Body() createCreditorDto: CreateCreditorDto,
+    @Body(new ZodPipe(CreateCreditorSchema))
+    createCreditorDto: CreateCreditorDto,
   ): Promise<Creditor> {
-    const parseResult = CreateCreditorSchema.safeParse(createCreditorDto);
-    if (!parseResult.success) {
-      throw new BadRequestException(
-        {
-          error: parseResult.error.errors,
-        },
-        { cause: parseResult.error.errors },
-      );
-    }
-    const creditor = await this.creditorService.create(parseResult.data);
+    const creditor = await this.creditorService.create(createCreditorDto);
     return creditor;
   }
 
-  @Get()
-  @ApiOkResponse({ type: [Creditor] })
-  async findAll(): Promise<Creditor[]> {
-    const creditors = await this.creditorService.findAll();
-    return creditors;
-  }
-
+  // TODO: remove this on production
   @Get(':id')
   @ApiOkResponse({ type: Creditor })
-  async findOne(@Param('id') id: string): Promise<Creditor> {
+  async findOneTmp(@Param('id') id: string): Promise<Creditor> {
     if (!id) {
       throw new BadRequestException('Id is required');
     }
@@ -103,36 +87,28 @@ export class CreditorController {
     return creditor;
   }
 
+  @UseGuards(MockAuthGuard)
+  @Get()
+  @ApiOkResponse({ type: Creditor })
+  async findOne(@Req() req: AuthReqType): Promise<Creditor> {
+    const creditor = await this.creditorService.findOne(req.user?.id);
+    return creditor;
+  }
+
   @Patch(':id')
   @ApiOkResponse({ type: ResponseDto })
   async update(
     @Param('id') id: string,
-    @Body() updateCreditorDto: UpdateCreditorDto,
+    @Body(new ZodPipe(UpdateCreditorSchema)) // apply pipe to only body
+    updateCreditorDto: UpdateCreditorDto,
   ) {
-    if (!id) {
-      throw new BadRequestException('Id is required');
-    }
-
-    const parseResult = UpdateCreditorSchema.safeParse(updateCreditorDto);
-    if (!parseResult.success) {
-      throw new BadRequestException(
-        {
-          error: parseResult.error.errors,
-        },
-        { cause: parseResult.error.errors },
-      );
-    }
-    const status = await this.creditorService.update(id, parseResult.data);
+    const status = await this.creditorService.update(id, updateCreditorDto);
     return status;
   }
 
   @Delete(':id')
   @ApiOkResponse({ type: ResponseDto })
   async remove(@Param('id') id: string) {
-    if (!id) {
-      throw new BadRequestException('Id is required');
-    }
-
     const status = await this.creditorService.remove(id);
     return status;
   }

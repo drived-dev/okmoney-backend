@@ -17,6 +17,7 @@ export const CreditorSchema = z.object({
       'Phone number must be in E.164 format (+66819009000)',
     ),
   rolePackage: z.nativeEnum(RolePackage),
+  tags: z.string().array(),
   email: z
     .string()
     .email('Invalid email format')
