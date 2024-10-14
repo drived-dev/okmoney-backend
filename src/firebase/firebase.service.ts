@@ -1,13 +1,55 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Bucket, File } from '@google-cloud/storage';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { app } from 'firebase-admin';
-
 @Injectable()
 export class FirebaseRepository {
+  bucket: Bucket;
   db: FirebaseFirestore.Firestore;
-  collection: FirebaseFirestore.CollectionReference;
+  logger = new Logger(FirebaseRepository.name);
 
-  constructor(@Inject('FIREBASE_APP') private firebaseApp: app.App) {
+  constructor(
+    @Inject('FIREBASE_APP') private firebaseApp: app.App,
+    private readonly configService: ConfigService,
+  ) {
+    const bucketURL = this.configService.get('BUCKET_URL');
+    this.bucket = firebaseApp.storage().bucket(bucketURL);
     this.db = firebaseApp.firestore();
-    this.collection = this.db.collection('<collection_name>');
+  }
+
+  async uploadFile(file: Express.Multer.File, filePath: string) {
+    this.logger.log(`Uploading file with path: ${filePath}`);
+    await this.bucket
+      .file(filePath)
+      .save(file.buffer, { contentType: file.mimetype });
+  }
+
+  async checkIfFileExist(file: File) {
+    const isExist = await file.exists();
+    return isExist[0];
+  }
+
+  // TODO: test what will happen if not exist
+  async getFileUrl(filePath: string) {
+    const file = this.bucket.file(filePath);
+    const isExist = await this.checkIfFileExist(file);
+    if (!isExist) {
+      return undefined;
+    }
+    const url = (
+      await file.getSignedUrl({
+        action: 'read',
+        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+      })
+    ).toString();
+    return url;
+  }
+
+  async safeRemoveFile(filePath: string) {
+    const isExist = await this.bucket.file(filePath).exists();
+    if (isExist[0] === true) {
+      this.logger.log(`Deleting file with filePath: ${filePath}`);
+      await this.bucket.file(filePath).delete();
+    }
   }
 }

@@ -3,13 +3,14 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { ZodError } from 'zod';
+import { FirebaseRepository } from '../firebase/firebase.service';
 import { Loan, LoanSchema } from '../loan/entities/loan.entity';
 import { LoanService } from '../loan/loan.service';
 import { PaymentType } from '../payment/entities/payment.entity';
-import { ZodError } from 'zod';
-import { FirebaseRepository } from '../firebase/firebase.service';
 import { PaymentService } from '../payment/payment.service';
 import {
+  BulkCreateDebtorDto,
   CreateDebtorDto,
   CreateExistingDebtorDto,
 } from './dto/create-debtor.dto';
@@ -26,13 +27,17 @@ export class DebtorService {
     private paymentService: PaymentService,
   ) {}
 
-  async createWithLoan(createExistingDebtorDto: CreateExistingDebtorDto) {
+  async createWithLoan(
+    createExistingDebtorDto: CreateExistingDebtorDto,
+    creditorId: string,
+  ) {
     const debtor = await this.create(createExistingDebtorDto.debtor);
     let loan: Loan;
     try {
       loan = await this.loanService.create({
         ...createExistingDebtorDto.loan,
         debtorId: debtor.id,
+        creditorId,
       });
     } catch (err: any) {
       await this.remove(debtor.id);
@@ -41,12 +46,16 @@ export class DebtorService {
       });
     }
 
-    if (createExistingDebtorDto.paidAmount === 0) return { debtor, loan };
+    // If new debtor, return
+    if (!createExistingDebtorDto?.paidAmount) return { debtor, loan };
 
+    // Create payment for existing debtor
     try {
       const payment = await this.paymentService.create({
         amount: createExistingDebtorDto.paidAmount,
         loanId: loan.id,
+        debtorId: debtor.id,
+        creditorId: creditorId,
         paymentType: PaymentType.EXISTING,
       });
       return { debtor, loan, payment };
@@ -57,6 +66,19 @@ export class DebtorService {
         cause: err?.message,
       });
     }
+  }
+
+  async createBulk(
+    bulkCreateDebtorDto: BulkCreateDebtorDto,
+    creditorId: string,
+  ) {
+    const data = await Promise.all(
+      bulkCreateDebtorDto.debtors.map(async (debtor) => {
+        if (!debtor?.paidAmount) debtor.paidAmount = 0;
+        return await this.createWithLoan(debtor, creditorId);
+      }),
+    );
+    return data;
   }
 
   async create(createDebtorDto: CreateDebtorDto): Promise<Debtor> {
@@ -86,10 +108,9 @@ export class DebtorService {
       .collection(debtorCollection)
       .doc(id);
     const doc = await docRef.get();
-    console.log('Found:', doc.exists);
     if (!doc.exists) {
       throw new NotFoundException(`Not Found: ${id} does not exist`, {
-        cause: `Debtor with this ${id} does not exist`,
+        cause: `Not Found: ${id} does not exist`,
       });
     }
     return docRef;

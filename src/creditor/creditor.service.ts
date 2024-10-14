@@ -3,8 +3,8 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateCreditorDto } from './dto/create-creditor.dto';
 import { FirebaseRepository } from '../firebase/firebase.service';
+import { CreateCreditorDto } from './dto/create-creditor.dto';
 import { UpdateCreditorDto } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
 
@@ -25,11 +25,22 @@ export class CreditorService {
       .doc(id);
     const doc = await docRef.get();
     if (!doc.exists) {
-      throw new NotFoundException(`Creditor with this ${id} does not exist`, {
-        cause: `Creditor with this ${id} does not exist`,
+      throw new NotFoundException(`Not Found: ${id} does not exist`, {
+        cause: `Not Found: ${id} does not exist`,
       });
     }
     return docRef;
+  }
+
+  generateProfileImagePath(id: string) {
+    return 'profileImage/' + id;
+  }
+
+  async uploadProfileImage(file: Express.Multer.File, userId: string) {
+    await this.firebaseRepository.uploadFile(
+      file,
+      this.generateProfileImagePath(userId),
+    );
   }
 
   async create(createCreditorDto: CreateCreditorDto): Promise<Creditor> {
@@ -72,7 +83,8 @@ export class CreditorService {
     try {
       const docRef = await this.findById(id);
       const data = (await docRef.get()).data();
-      return { id: docRef.id, ...data } as Creditor;
+      const profileImage = await this.getProfileImageById(docRef.id);
+      return { id: docRef.id, ...data, profileImage } as Creditor;
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
@@ -96,9 +108,22 @@ export class CreditorService {
     }
   }
 
+  async getProfileImageById(id: string): Promise<string | undefined> {
+    return await this.firebaseRepository.getFileUrl(
+      this.generateProfileImagePath(id),
+    );
+  }
+
+  async removeProfileImageById(id: string) {
+    const filePath = this.generateProfileImagePath(id);
+    await this.firebaseRepository.safeRemoveFile(filePath);
+  }
+
   async remove(id: string) {
     try {
       const docRef = await this.findById(id);
+
+      await this.removeProfileImageById(id);
 
       await docRef.delete();
       return { message: 'Creditor deleted successfully' };
