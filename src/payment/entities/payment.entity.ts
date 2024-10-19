@@ -27,6 +27,7 @@ export const PaymentSchema = z.object({
     .date()
     .transform((date) => new Date(date).getTime())
     .optional(),
+  // TODO: remove updatedAt from the schema
 });
 
 export class Payment extends createZodDto(PaymentSchema) {}
