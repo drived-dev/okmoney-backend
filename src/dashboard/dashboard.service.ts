@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AggregateField } from 'firebase-admin/firestore';
-import { paymentCollection } from 'src/payment/payment.service';
+import { paymentCollection } from '../payment/payment.service';
 import { FirebaseRepository } from '../firebase/firebase.service';
 import { loanCollection } from '../loan/loan.service';
 import { GetLoanByTimeDto, LoanByTimeInterval } from './dashboard.dto';

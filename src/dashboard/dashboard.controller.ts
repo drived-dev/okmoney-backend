@@ -1,7 +1,7 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { MockAuthGuard } from 'src/auth/mockAuthGuard';
-import { AuthReqType } from 'src/auth/reqType';
+import { MockAuthGuard } from '../auth/mockAuthGuard';
+import { AuthReqType } from '../auth/reqType';
 import { DashboardService } from './dashboard.service';
 import { GetDebtorDto, GetLoanByTimeDto, GetLoanDto } from './dashboard.dto';
 

@@ -1,11 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DashboardService } from './dashboard.service';
+import { FirebaseModule } from '../firebase/firebase.module';
+import { ConfigModule } from '@nestjs/config';
 
 describe('DashboardService', () => {
   let service: DashboardService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [ConfigModule.forRoot(), FirebaseModule],
       providers: [DashboardService],
     }).compile();
 
