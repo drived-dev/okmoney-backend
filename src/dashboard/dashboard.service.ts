@@ -45,7 +45,7 @@ export class DashboardService {
     }
   }
 
-  //   TODO: edit when requirement is clear
+  // TODO: edit when requirement is clear, how to compute total interest?
   async getLoan(creditorId: string) {
     try {
       const querySnapshot = await this.firebaseRepository.db
@@ -53,13 +53,20 @@ export class DashboardService {
         .where('creditorId', '==', creditorId)
         .aggregate({
           totalLoan: AggregateField.sum('totalBalance'),
+          accuredIncome: AggregateField.sum('remainingBalance'),
+          totalPrincipal: AggregateField.sum('principal'),
         })
         .get();
 
       const data = querySnapshot.data();
+      const totalEarned = data.totalLoan - data.accuredIncome;
+      const profit = Math.max(0, totalEarned - data.totalPrincipal);
 
       return {
         totalLoan: data.totalLoan,
+        accuredIncome: data.accuredIncome,
+        totalEarned,
+        profit,
       };
     } catch (err) {
       this.logger.error(err);

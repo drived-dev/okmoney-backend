@@ -12,6 +12,9 @@ export class GetDebtorDto extends createZodDto(GetDebtor) {}
 // TODO: waiting for Mel to confirm
 const GetLoan = z.object({
   totalLoan: z.number(),
+  accuredIncome: z.number(),
+  totalEarned: z.number(),
+  profit: z.number(),
 });
 
 export class GetLoanDto extends createZodDto(GetLoan) {}
