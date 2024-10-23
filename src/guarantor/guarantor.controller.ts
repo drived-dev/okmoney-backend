@@ -17,7 +17,9 @@ import {
   UpdateGuarantorDto,
   UpdateGuaratorSchema,
 } from './dto/update-guarantor.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('guarantor')
 @Controller('guarantor')
 export class GuarantorController {
   constructor(private readonly guarantorService: GuarantorService) {}

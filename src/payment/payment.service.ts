@@ -8,7 +8,7 @@ import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { Payment } from './entities/payment.entity';
 
-const paymentCollection = 'payment';
+export const paymentCollection = 'payment';
 
 @Injectable()
 export class PaymentService {
