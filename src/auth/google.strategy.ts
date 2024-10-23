@@ -37,7 +37,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       firstName: profile.name.givenName,
       lastName: profile.name.familyName,
       storeName: "",
-      phoneNumber: "+66812345678",
+      phoneNumber: "+66812345678", // TODO: change tel
       rolePackage: 0,
       //avatarUrl: profile.photos[0].value,
       //password: '',
