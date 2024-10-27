@@ -38,6 +38,10 @@ export const CreditorSchema = z.object({
   debtorSlotAvailable: z.number().int().optional(),
   socialProvider: z.number().int().optional(),
   profileImage: z.string().optional(),
+
+  googleId: z.string().optional(),
+  facebookId: z.string().optional(),
+  lineId: z.string().optional(),
 });
 
 export class Creditor extends createZodDto(CreditorSchema) {}
