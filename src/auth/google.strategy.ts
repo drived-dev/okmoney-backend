@@ -32,13 +32,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
   ) {
     console.log({ profile });
     const user = await this.authService.validateGoogleUser({
-      id: profile.id,
       email: profile.emails[0].value,
       firstName: profile.name.givenName,
       lastName: profile.name.familyName,
       storeName: "",
-      phoneNumber: "+66812345678", // TODO: change tel
       rolePackage: 0,
+      googleId: profile.id,
       //avatarUrl: profile.photos[0].value,
       //password: '',
     });

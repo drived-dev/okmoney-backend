@@ -19,11 +19,11 @@ export class AuthService {
     if (!googleUser.email) {
         throw new UnauthorizedException('Google user email is required');
     }
-    console.log("gg user", googleUser)
+    console.log("gg user", googleUser.googleId)
     //const user = await this.creditorService.findByEmail(googleUser.email);
-    const user = await this.creditorService.checkId(googleUser.id)
+    const user = await this.creditorService.checkId(googleUser.googleId)
     if (user != null) return user;
-    return await this.creditorService.createWithId(googleUser, googleUser.id);
+    return await this.creditorService.create(googleUser);
   }
 
   googleLogin(req){
