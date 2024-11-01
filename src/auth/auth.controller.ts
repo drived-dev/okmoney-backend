@@ -36,6 +36,7 @@ import { RefreshAuthGuard } from './refresh-auth.guard';
             return res.status(400).send(token);
         }
         console.log(token)
+        // TODO: change redirect url (to app)
         return res.redirect(`http://localhost:3000/api/auth/test?token=${token.accessToken}&refreshToken=${token.refreshToken}`);
     }
 
