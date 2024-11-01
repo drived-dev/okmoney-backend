@@ -8,6 +8,7 @@ import { LoanModule } from './loan/loan.module';
 import { GuarantorModule } from './guarantor/guarantor.module';
 import { PaymentModule } from './payment/payment.module';
 import { CreditorModule } from './creditor/creditor.module';
+import { AuthModule } from './auth/auth.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
@@ -19,6 +20,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     LoanModule,
     GuarantorModule,
     PaymentModule,
+    AuthModule,
     DashboardModule,
   ],
   controllers: [AppController],

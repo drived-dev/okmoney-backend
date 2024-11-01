@@ -34,6 +34,7 @@ import {
   UpdateCreditorSchema,
 } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 // TODO: Create test for all endpoints
 
@@ -74,6 +75,14 @@ export class CreditorController {
   ): Promise<Creditor> {
     const creditor = await this.creditorService.create(createCreditorDto);
     return creditor;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  @ApiOkResponse({ type: [Creditor] })
+  async findAll(): Promise<Creditor[]> {
+    const creditors = await this.creditorService.findAll();
+    return creditors;
   }
 
   // TODO: remove this on production
