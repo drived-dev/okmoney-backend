@@ -34,7 +34,7 @@ import {
   UpdateCreditorSchema,
 } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 // TODO: Create test for all endpoints
 
