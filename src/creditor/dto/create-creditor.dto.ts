@@ -6,6 +6,7 @@ export const CreateCreditorSchema = CreditorSchema.pick({
   lastName: true,
   storeName: true,
   rolePackage: true,
+  tags: true,
 });
 
 export class CreateCreditorDto extends createZodDto(CreateCreditorSchema) {}

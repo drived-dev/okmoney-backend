@@ -7,42 +7,58 @@ import {
   Param,
   Patch,
   Post,
-  UsePipes,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { z } from 'zod';
+import { MockAuthGuard } from '../auth/mockAuthGuard';
+import { AuthReqType } from '../auth/reqType';
 import { ZodPipe } from '../utils/zodPipe';
 import { DebtorService } from './debtor.service';
 import {
+  BulkCreateDebtorDto,
+  BulkCreateDebtorSchema,
   CreateExistingDebtorDto,
   CreateExistingDebtorSchema,
-  CreateNewDebtorDto,
-  CreateNewDebtorSchema,
 } from './dto/create-debtor.dto';
 import { UpdateDebtorDto, UpdateDebtorSchema } from './dto/update-debtor.dto';
+import { UpdateLoanDto, UpdateLoanSchema } from '../loan/dto/update-loan.dto';
+import { LoanService } from '../loan/loan.service';
 
 @ApiTags('Debtor')
 @Controller('debtor')
 export class DebtorController {
-  constructor(private readonly debtorService: DebtorService) {}
+  constructor(
+    private readonly debtorService: DebtorService,
+    private readonly loanService: LoanService,
+  ) {}
 
-  // TODO: get id from token
-  @Post('new')
-  @UsePipes(new ZodPipe(CreateNewDebtorSchema))
-  async createNew(@Body() createDebtorDto: CreateNewDebtorDto) {
-    console.log(createDebtorDto);
-    const data = await this.debtorService.createWithLoan({
-      ...createDebtorDto,
-      paidAmount: 0,
-    });
+  @UseGuards(MockAuthGuard)
+  @Post('bulk')
+  async createBulk(
+    @Req() req: AuthReqType,
+    @Body(new ZodPipe(BulkCreateDebtorSchema))
+    bulkCreateDebtorDto: BulkCreateDebtorDto,
+  ) {
+    const data = await this.debtorService.createBulk(
+      bulkCreateDebtorDto,
+      req.user.id,
+    );
     return data;
   }
 
-  // TODO: get id from token
-  @Post('existing')
-  @UsePipes(new ZodPipe(CreateExistingDebtorSchema))
-  async createExist(@Body() createDebtorDto: CreateExistingDebtorDto) {
-    const data = await this.debtorService.createWithLoan(createDebtorDto);
+  @UseGuards(MockAuthGuard)
+  @Post()
+  async create(
+    @Req() req: AuthReqType,
+    @Body(new ZodPipe(CreateExistingDebtorSchema))
+    createDebtorDto: CreateExistingDebtorDto,
+  ) {
+    if (!createDebtorDto.paidAmount) createDebtorDto.paidAmount = 0;
+    const data = await this.debtorService.createWithLoan(
+      createDebtorDto,
+      req.user.id,
+    );
     return data;
   }
 
@@ -62,45 +78,29 @@ export class DebtorController {
   }
 
   // TODO: get id from token
-  @Get('/mydebtors/:id')
-  async findLoansWithDebtorDetails(@Param('id') id: string) {
+  @UseGuards(MockAuthGuard)
+  @Get('/mydebtors')
+  async findLoansWithDebtorDetails(@Req() req: AuthReqType) {
+    const id = req.user?.id;
     const debtors = await this.debtorService.findLoansWithDebtorDetails(id);
     return debtors;
-  }
-
-  @Post('/test')
-  async test(@Body() body: any) {
-    try {
-      const dateNum = z.coerce
-        .date()
-        .transform((date) => new Date(date).getTime());
-      return dateNum.parse(body.dueDate);
-    } catch (err) {
-      console.log(err);
-      throw new BadRequestException(err);
-    }
-    return body;
   }
 
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateDebtorDto: UpdateDebtorDto,
+    @Body(new ZodPipe(UpdateDebtorSchema)) updateDebtorDto: UpdateDebtorDto,
   ) {
-    if (!id) {
-      throw new BadRequestException('Id is required');
-    }
+    const status = await this.debtorService.update(id, updateDebtorDto);
+    return status;
+  }
 
-    const parseResult = UpdateDebtorSchema.safeParse(updateDebtorDto);
-    if (!parseResult.success) {
-      throw new BadRequestException(
-        {
-          error: parseResult.error.errors,
-        },
-        { cause: parseResult.error.errors },
-      );
-    }
-    const status = await this.debtorService.update(id, parseResult.data);
+  @Patch('loan/:id')
+  async updateLoan(
+    @Param('id') loanId: string,
+    @Body(new ZodPipe(UpdateLoanSchema)) updateLoanDto: UpdateLoanDto,
+  ) {
+    const status = await this.loanService.update(loanId, updateLoanDto);
     return status;
   }
 

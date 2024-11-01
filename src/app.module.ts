@@ -9,6 +9,7 @@ import { GuarantorModule } from './guarantor/guarantor.module';
 import { PaymentModule } from './payment/payment.module';
 import { CreditorModule } from './creditor/creditor.module';
 import { AuthModule } from './auth/auth.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { AuthModule } from './auth/auth.module';
     LoanModule,
     GuarantorModule,
     PaymentModule,
-    AuthModule
+    AuthModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
