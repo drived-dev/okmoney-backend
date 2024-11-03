@@ -3,10 +3,11 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { Payment } from './entities/payment.entity';
+import { Payment, PaymentSchema } from './entities/payment.entity';
 
 export const paymentCollection = 'payment';
 
@@ -29,10 +30,14 @@ export class PaymentService {
         .collection(paymentCollection)
         .add({
           ...createPaymentDto,
+          imageUrl: 'Not empty',
           createdAt: Date.now(),
           updatedAt: Date.now(),
         });
-      const data = (await docRef.get()).data() as Payment;
+      const data = PaymentSchema.parse({
+        id: docRef.id,
+        ...(await docRef.get()).data(),
+      }) as Payment;
 
       if (file) {
         const imageUrl = this.generatePaymentImagePath(data.loanId, docRef.id);
@@ -135,19 +140,28 @@ export class PaymentService {
     }
   }
 
-  async remove(id: string) {
-    try {
-      const docRef = await this.findById(id);
-      if (!docRef) {
-        return { message: `Payment not found: ${id}` };
-      }
-      await docRef.delete();
-      return { message: 'Payment deleted successfully' };
-    } catch (err: any) {
-      this.logger.error(err?.message);
-      throw new InternalServerErrorException(err?.message, {
-        cause: err?.message,
-      });
+  async remove(id: string, creditorId: string) {
+    const docRef = await this.findById(id);
+    if (!docRef) {
+      return { message: `Payment not found: ${id}` };
     }
+    const data = PaymentSchema.parse({
+      id: docRef.id,
+      ...(await docRef.get()).data(),
+    }) as Payment;
+
+    if (data.creditorId !== creditorId) {
+      this.logger.error(`Payment with this ${id} does not belong to you`);
+      throw new UnauthorizedException(
+        `Payment with this ${id} does not belong to you`,
+      );
+    }
+
+    if (data.imageUrl) {
+      const imagePath = this.generatePaymentImagePath(data.loanId, data.id);
+      await this.firebaseRepository.safeRemoveFile(imagePath);
+    }
+    await docRef.delete();
+    return { message: 'Payment deleted successfully' };
   }
 }

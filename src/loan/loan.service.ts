@@ -13,7 +13,6 @@ import { FieldValue } from 'firebase-admin/firestore';
 
 export const loanCollection = 'loan';
 
-// TODO: handle update via nest admin
 @Injectable()
 export class LoanService {
   private readonly logger = new Logger(LoanService.name);

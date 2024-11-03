@@ -1,3 +1,4 @@
+import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
 import {
   BadRequestException,
   Body,
@@ -13,12 +14,26 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiExtraModels,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import { MockAuthGuard } from '../auth/mockAuthGuard';
 import { AuthReqType } from '../auth/reqType';
 import { LoanService } from '../loan/loan.service';
-import { CreatePaymentSchema } from './dto/create-payment.dto';
+import {
+  CreatePaymentDto,
+  CreatePaymentSchema,
+} from './dto/create-payment.dto';
+import { Payment } from './entities/payment.entity';
 import { PaymentService } from './payment.service';
+import { ResponseDto } from '@/types/response.dto';
 
 @ApiTags('Payment')
 @Controller('payment')
@@ -31,11 +46,38 @@ export class PaymentController {
   ) {}
 
   @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
   @Post('/create')
   @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiExtraModels(CreatePaymentDto)
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'object',
+          $ref: getSchemaPath(CreatePaymentDto),
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiOperation({
+    summary: 'Create a payment with slip image as optional',
+    description:
+      'Request type is multipart/form-data where file attribute contains the slip image and data attribute contains the CreatePaymentDto object',
+  })
+  @ApiCreatedResponse({
+    description: 'The payment has been successfully created.',
+    type: Payment,
+  })
   async createPayment(
     @Req() req: AuthReqType,
-    @Body() createPaymentDto: any, // TODO: multipart form data send only file or string (JSON is not supported)
+    @Body() createPaymentDto: { data: string }, // TODO: multipart form data send only file or string (JSON is not supported)
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!req.user?.id) {
@@ -71,16 +113,25 @@ export class PaymentController {
     return payment;
   }
 
-  // TODO: Make pagination?
   @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
   @Get('history')
+  @ApiOkResponse({
+    type: [Payment],
+    description: 'Get all payments by creditor Id',
+  })
   async findAll(@Req() req: AuthReqType) {
     const payments = await this.paymentService.findAll(req.user.id);
     return payments;
   }
 
   @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
   @Get('history/debtor/:id')
+  @ApiOkResponse({
+    type: [Payment],
+    description: 'Get all payments by debtor Id',
+  })
   async findAllByDebtorId(
     @Req() req: AuthReqType,
     @Param('id') debtorId: string,
@@ -93,8 +144,13 @@ export class PaymentController {
   }
 
   @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
   @Delete(':id')
-  async remove(@Param('id') paymentId: string) {
-    return this.paymentService.remove(paymentId);
+  @ApiOkResponse({
+    type: ResponseDto,
+    description: 'Delete payment with payment id as param',
+  })
+  async remove(@Req() req: AuthReqType, @Param('id') paymentId: string) {
+    return this.paymentService.remove(paymentId, req.user?.id);
   }
 }
