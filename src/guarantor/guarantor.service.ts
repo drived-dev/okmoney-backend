@@ -1,5 +1,5 @@
 import { Loan, LoanSchema } from '@/loan/entities/loan.entity';
-import { loanCollection, LoanService } from '@/loan/loan.service';
+import { loanCollection } from '@/loan/loan.service';
 import {
   Injectable,
   InternalServerErrorException,
@@ -14,10 +14,7 @@ const guarantorCollection = 'guarantor';
 
 @Injectable()
 export class GuarantorService {
-  constructor(
-    private firebaseRepository: FirebaseRepository,
-    private loanService: LoanService,
-  ) {}
+  constructor(private firebaseRepository: FirebaseRepository) {}
 
   async create(createGuarantorDto: CreateGuarantorDto): Promise<Guarantor> {
     try {

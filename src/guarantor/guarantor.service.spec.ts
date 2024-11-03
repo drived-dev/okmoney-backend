@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { GuarantorService } from './guarantor.service';
-import { FirebaseModule } from '../firebase/firebase.module';
 import { ConfigModule } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
+import { FirebaseModule } from '../firebase/firebase.module';
+import { GuarantorService } from './guarantor.service';
 
 describe('GuarantorService', () => {
   let service: GuarantorService;
