@@ -18,7 +18,12 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   CreateGuarantorDto,
   CreateGuarantorScehma,
@@ -40,6 +45,9 @@ export class GuarantorController {
 
   @UseGuards(MockAuthGuard)
   @ApiAuthorizationHeader()
+  @ApiOperation({
+    description: 'Create a guarantor (this should not be used)',
+  })
   @ApiCreatedResponse({
     type: Guarantor,
     description:
@@ -52,6 +60,27 @@ export class GuarantorController {
     createGuratantorDto: CreateGuarantorDto,
   ) {
     const guarator = await this.guarantorService.create(createGuratantorDto);
+    return guarator;
+  }
+
+  @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
+  @ApiCreatedResponse({
+    type: Guarantor,
+    description:
+      'Create a debtor where the payment is included for an exisiting debtor',
+  })
+  @Post('/loan/:loanId')
+  async createWithLoan(
+    @Param('loanId') loanId: string,
+    @Req() req: AuthReqType,
+    @Body(new ZodPipe(CreateGuarantorScehma))
+    createGuratantorDto: CreateGuarantorDto,
+  ) {
+    const guarator = await this.guarantorService.create(createGuratantorDto);
+    await this.loanService.update(loanId, {
+      guarantorId: guarator.id,
+    });
     return guarator;
   }
 
