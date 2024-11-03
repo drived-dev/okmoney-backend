@@ -9,6 +9,7 @@ import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreateLoanDto } from './dto/create-loan.dto';
 import { Loan, LoanSchema } from './entities/loan.entity';
 import { UpdateLoanDto } from './dto/update-loan.dto';
+import { FieldValue } from 'firebase-admin/firestore';
 
 export const loanCollection = 'loan';
 
@@ -53,15 +54,22 @@ export class LoanService {
     return docRef;
   }
 
-  async findByDebtorId(debtorId: string): Promise<Loan[]> {
+  async findByGivenId(
+    attr: string,
+    id: string,
+    creditorId: string,
+  ): Promise<Loan[]> {
     const loanRef = await this.firebaseRepository.db
       .collection(loanCollection)
-      .where('debtorId', '==', debtorId)
+      .where(attr, '==', id)
+      .where('creditorId', '==', creditorId)
       .get();
     if (loanRef.empty) {
-      this.logger.log(`Loan with debtor id = ${debtorId} does not exist`);
+      this.logger.error(
+        `Loan with ${attr} id = ${id} that you are owner does not exist`,
+      );
       throw new NotFoundException(
-        `Loan with debtor id = ${debtorId} does not exist`,
+        `Loan with ${attr} id = ${id} that you are owner does not exist`,
       );
     }
     return loanRef.docs.map(
@@ -75,16 +83,18 @@ export class LoanService {
     creditorId: string,
   ): Promise<Loan> {
     const loan = LoanSchema.parse(
-      (await this.findByDebtorId(debtorId))[0],
+      (await this.findByGivenId('debtorId', debtorId, creditorId))[0],
     ) as Loan;
-    //  check if loan's creditor id is equal to the creditor id
-    if (loan.creditorId !== creditorId) {
-      this.logger.error(
-        'Unauthorized to access debtor',
-        'Creditor Id: ' + creditorId,
-      );
-      throw new UnauthorizedException('Unauthorized to access debtor');
-    }
+    return loan;
+  }
+
+  async authorizeGuarantorByCreditorId(
+    guarantorId: string,
+    creditorId: string,
+  ): Promise<Loan> {
+    const loan = LoanSchema.parse(
+      (await this.findByGivenId('guarantorId', guarantorId, creditorId))[0],
+    ) as Loan;
     return loan;
   }
 
@@ -142,7 +152,7 @@ export class LoanService {
 
   async update(
     loanId: string,
-    updateLoanDto: UpdateLoanDto,
+    updateLoanDto: UpdateLoanDto | { guarantorId: FieldValue },
   ): Promise<{ message: string }> {
     try {
       const docRef = await this.findById(loanId);

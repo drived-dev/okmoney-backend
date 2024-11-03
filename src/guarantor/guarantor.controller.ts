@@ -1,88 +1,138 @@
+import { MockAuthGuard } from '@/auth/mockAuthGuard';
+import { AuthReqType } from '@/auth/reqType';
+import { Loan } from '@/loan/entities/loan.entity';
+import { LoanService } from '@/loan/loan.service';
+import { ResponseDto } from '@/types/response.dto';
+import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
+import { ZodPipe } from '@/utils/zodPipe';
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  BadRequestException,
+  Get,
+  Logger,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
-import { GuarantorService } from './guarantor.service';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import {
   CreateGuarantorDto,
   CreateGuarantorScehma,
 } from './dto/create-guarantor.dto';
-import {
-  UpdateGuarantorDto,
-  UpdateGuaratorSchema,
-} from './dto/update-guarantor.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { UpdateGuarantorDto } from './dto/update-guarantor.dto';
+import { Guarantor } from './entities/guarantor.entity';
+import { GuarantorService } from './guarantor.service';
+import { FieldValue } from 'firebase-admin/firestore';
 
-@ApiTags('guarantor')
+@ApiTags('Guarantor')
 @Controller('guarantor')
 export class GuarantorController {
-  constructor(private readonly guarantorService: GuarantorService) {}
+  private readonly logger = new Logger(GuarantorController.name);
 
+  constructor(
+    private readonly guarantorService: GuarantorService,
+    private readonly loanService: LoanService,
+  ) {}
+
+  @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
+  @ApiCreatedResponse({
+    type: Guarantor,
+    description:
+      'Create a debtor where the payment is included for an exisiting debtor',
+  })
   @Post()
-  async create(@Body() createGuarantorDto: CreateGuarantorDto) {
-    const parseResult = CreateGuarantorScehma.safeParse(createGuarantorDto);
-    if (!parseResult.success) {
-      throw new BadRequestException(
-        {
-          error: parseResult.error.errors,
-        },
-        { cause: parseResult.error.errors },
-      );
-    }
-    const guarator = await this.guarantorService.create(parseResult.data);
+  async create(
+    @Req() req: AuthReqType,
+    @Body(new ZodPipe(CreateGuarantorScehma))
+    createGuratantorDto: CreateGuarantorDto,
+  ) {
+    const guarator = await this.guarantorService.create(createGuratantorDto);
     return guarator;
   }
 
+  @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
   @Get()
-  async findAll() {
-    const guarantors = await this.guarantorService.findAll();
+  @ApiOkResponse({
+    type: Guarantor,
+    isArray: true,
+    description: 'Find all guarantors by creditor Id',
+  })
+  async findAll(@Req() req: AuthReqType) {
+    const guarantors = await this.guarantorService.findAll(req.user?.id);
     return guarantors;
   }
 
+  @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    if (!id) {
-      throw new BadRequestException('Id is required');
-    }
+  @ApiOkResponse({
+    type: Guarantor,
+    description: 'Find guarantor with guarantor id as param',
+  })
+  async findOne(@Param('id') id: string, @Req() req: AuthReqType) {
+    const creditorId = req.user?.id;
     const guarantor = await this.guarantorService.findOne(id);
+    try {
+      await this.loanService.authorizeGuarantorByCreditorId(id, creditorId);
+    } catch (err) {
+      if (guarantor) {
+        throw new UnauthorizedException('You are not owner of this guarantor');
+      }
+      throw err;
+    }
     return guarantor;
   }
 
+  @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
   @Patch(':id')
+  @ApiOkResponse({
+    type: ResponseDto,
+    description: 'Update guarantor with guarantor id as param',
+  })
   async update(
     @Param('id') id: string,
+    @Req() req: AuthReqType,
     @Body() updateGuarantorDto: UpdateGuarantorDto,
   ) {
-    if (!id) {
-      throw new BadRequestException('Id is required');
+    try {
+      await this.loanService.authorizeGuarantorByCreditorId(id, req.user?.id);
+    } catch (err) {
+      this.logger.error(err);
+      throw new UnauthorizedException('You are not owner of this guarantor');
     }
-
-    const parseResult = UpdateGuaratorSchema.safeParse(updateGuarantorDto);
-    if (!parseResult.success) {
-      throw new BadRequestException(
-        {
-          error: parseResult.error.errors,
-        },
-        { cause: parseResult.error.errors },
-      );
-    }
-    const status = await this.guarantorService.update(id, parseResult.data);
+    const status = await this.guarantorService.update(id, updateGuarantorDto);
     return status;
   }
 
+  @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    if (!id) {
-      throw new BadRequestException('Id is required');
+  @ApiOkResponse({
+    type: ResponseDto,
+    description: 'Delete guarantor with guarantor id as param',
+  })
+  async remove(@Param('id') id: string, @Req() req: AuthReqType) {
+    let loan: Loan;
+    try {
+      loan = await this.loanService.authorizeGuarantorByCreditorId(
+        id,
+        req.user?.id,
+      );
+    } catch (err) {
+      this.logger.error(err);
+      throw new UnauthorizedException('You are not owner of this guarantor');
     }
-
     const status = await this.guarantorService.remove(id);
+    await this.loanService.update(loan.id, {
+      guarantorId: FieldValue.delete(),
+    });
     return status;
   }
 }
