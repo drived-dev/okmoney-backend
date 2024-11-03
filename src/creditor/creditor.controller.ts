@@ -1,3 +1,4 @@
+import { ResponseDto } from '@/types/response.dto';
 import {
   BadRequestException,
   Body,
@@ -18,9 +19,10 @@ import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
   ApiOkResponse,
-  ApiProperty,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiAuthorizationHeader } from 'src/utils/auth.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MockAuthGuard } from '../auth/mockAuthGuard';
 import { AuthReqType } from '../auth/reqType';
 import { ZodPipe } from '../utils/zodPipe';
@@ -34,16 +36,11 @@ import {
   UpdateCreditorSchema,
 } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 // TODO: Create test for all endpoints
+// TODO: Add token required on header for all endpoints
 
-class ResponseDto {
-  @ApiProperty({ example: 'Success' })
-  message: string | undefined;
-}
-
-@ApiTags('creditor')
+@ApiTags('Creditor')
 @Controller('creditor')
 export class CreditorController {
   private readonly logger = new Logger(CreditorController.name);
@@ -51,8 +48,13 @@ export class CreditorController {
   constructor(private readonly creditorService: CreditorService) {}
 
   @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
   @Post('profileimage')
   @UseInterceptors(FileInterceptor('file'))
+  @ApiCreatedResponse({
+    type: ResponseDto,
+    description: 'The image has been successfully uploaded.',
+  })
   async uploadProfileImage(
     @Req() req: AuthReqType,
     @UploadedFile() file: Express.Multer.File,
@@ -77,6 +79,7 @@ export class CreditorController {
     return creditor;
   }
 
+  // TODO: remove this on production
   @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOkResponse({ type: [Creditor] })
@@ -97,6 +100,7 @@ export class CreditorController {
   }
 
   @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
   @Get()
   @ApiOkResponse({ type: Creditor })
   async findOne(@Req() req: AuthReqType): Promise<Creditor> {
@@ -104,22 +108,28 @@ export class CreditorController {
     return creditor;
   }
 
-  // TODO: get id from token instead
-  @Patch(':id')
+  @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
+  @Patch()
   @ApiOkResponse({ type: ResponseDto })
   async update(
-    @Param('id') id: string,
+    @Req() req: AuthReqType,
     @Body(new ZodPipe(UpdateCreditorSchema)) // apply pipe to only body
     updateCreditorDto: UpdateCreditorDto,
   ) {
-    const status = await this.creditorService.update(id, updateCreditorDto);
+    const status = await this.creditorService.update(
+      req.user?.id,
+      updateCreditorDto,
+    );
     return status;
   }
 
-  @Delete(':id')
+  @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
+  @Delete()
   @ApiOkResponse({ type: ResponseDto })
-  async remove(@Param('id') id: string) {
-    const status = await this.creditorService.remove(id);
+  async remove(@Req() req: AuthReqType) {
+    const status = await this.creditorService.remove(req.user?.id);
     return status;
   }
 }

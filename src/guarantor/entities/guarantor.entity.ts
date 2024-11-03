@@ -1,3 +1,4 @@
+import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 
 const e164PhoneNumberRegex = /^\+[1-9]\d{1,14}$/;
@@ -23,4 +24,4 @@ export const GuarantorSchema = z.object({
     .optional(),
 });
 
-export type Guarantor = z.infer<typeof GuarantorSchema>;
+export class Guarantor extends createZodDto(GuarantorSchema) {}

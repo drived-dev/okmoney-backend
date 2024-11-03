@@ -3,6 +3,7 @@ import { GuarantorController } from './guarantor.controller';
 import { GuarantorService } from './guarantor.service';
 import { FirebaseModule } from '../firebase/firebase.module';
 import { ConfigModule } from '@nestjs/config';
+import { LoanService } from '@/loan/loan.service';
 
 describe('GuarantorController', () => {
   let controller: GuarantorController;
@@ -11,7 +12,7 @@ describe('GuarantorController', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [ConfigModule.forRoot(), FirebaseModule],
       controllers: [GuarantorController],
-      providers: [GuarantorService],
+      providers: [GuarantorService, LoanService],
     }).compile();
 
     controller = module.get<GuarantorController>(GuarantorController);

@@ -31,6 +31,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/schedule": "^4.1.1",
     "@nestjs/swagger": "^7.4.2",
+    "@scalar/nestjs-api-reference": "^0.3.166",
     "firebase-admin": "^12.5.0",
     "openapi3-ts": "^4.4.0",
     "passport": "^0.7.0",
@@ -79,6 +80,10 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1",
+      "^src/(.*)$": "<rootDir>/$1"
+    }
   }
 }

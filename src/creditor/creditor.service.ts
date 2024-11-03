@@ -32,16 +32,14 @@ export class CreditorService {
     return docRef;
   }
 
-  async checkId(
-    googleId: string,
-  ) {
+  async checkId(googleId: string) {
     if (!googleId) {
       throw new Error('googleId is required and cannot be empty');
     }
     const querySnapshot = await this.firebaseRepository.db
-    .collection(creditorCollection)
-    .where('googleId', '==', googleId)
-    .get();
+      .collection(creditorCollection)
+      .where('googleId', '==', googleId)
+      .get();
 
     if (querySnapshot.empty) {
       return null;

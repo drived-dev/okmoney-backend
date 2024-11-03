@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ZodError } from 'zod';
@@ -21,6 +22,8 @@ const debtorCollection = 'debtor';
 
 @Injectable()
 export class DebtorService {
+  private readonly logger = new Logger(DebtorService.name);
+
   constructor(
     private firebaseRepository: FirebaseRepository,
     private loanService: LoanService,
@@ -167,7 +170,7 @@ export class DebtorService {
         }),
       );
 
-      return results;
+      return results as { loan: Loan; debtor: Debtor | null }[];
     } catch (err: any) {
       if (err instanceof ZodError) {
         throw new InternalServerErrorException(err?.errors, {
@@ -186,7 +189,6 @@ export class DebtorService {
   ): Promise<{ message: string }> {
     try {
       const docRef = await this.findById(id);
-
       await docRef.update({
         ...updateDebtorDto,
         updatedAt: Date.now(),
@@ -200,9 +202,10 @@ export class DebtorService {
   }
 
   async remove(id: string): Promise<{ message: string }> {
-    const docRef = await this.findById(id);
     try {
+      const docRef = await this.findById(id);
       await docRef.delete();
+
       return { message: 'Deleted successfully' };
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
