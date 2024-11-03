@@ -1,6 +1,7 @@
+import { PaymentSchema } from '@/payment/entities/payment.entity';
 import { createZodDto } from '@anatine/zod-nestjs';
-import { LoanSchema } from '../../loan/entities/loan.entity';
 import { z } from 'zod';
+import { LoanSchema } from '../../loan/entities/loan.entity';
 import { DebtorSchema } from '../entities/debtor.entity';
 
 export const CreateDebtorSchema = DebtorSchema.omit({ id: true });
@@ -34,3 +35,18 @@ export const BulkCreateDebtorSchema = z.object({
 });
 
 export class BulkCreateDebtorDto extends createZodDto(BulkCreateDebtorSchema) {}
+
+const CreatedResponseSchema = z.object({
+  debtor: DebtorSchema,
+  loan: LoanSchema,
+  payment: PaymentSchema.optional(),
+});
+
+export class CreatedResponseDto extends createZodDto(CreatedResponseSchema) {}
+
+const GetAllDebtorSchema = z.object({
+  loan: LoanSchema,
+  debtor: DebtorSchema.optional(),
+});
+
+export class GetAllDebtorDto extends createZodDto(GetAllDebtorSchema) {}
