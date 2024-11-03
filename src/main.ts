@@ -14,6 +14,7 @@ async function bootstrap() {
     .setDescription('The Okmoney API description')
     .setVersion('1.0')
     .addTag('okmoney')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
