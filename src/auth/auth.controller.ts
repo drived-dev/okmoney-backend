@@ -19,6 +19,13 @@ import { RefreshAuthGuard } from './refresh-auth.guard';
   export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
+    @Post('phone/login')
+    async login(@Request() req){
+      const token = await this.authService.phoneLogin(req.user.phone);
+      console.log(token)
+      return { accessToken: token.accessToken, refreshToken: token.refreshToken }
+    }
+
     @UseGuards(GoogleAuthGuard)
     @Get('google/login')
     googleLogin() {}
@@ -52,5 +59,11 @@ import { RefreshAuthGuard } from './refresh-auth.guard';
         @Query('refreshToken') refreshToken: string,
     ) {
         return `Token: ${token}<br>RefreshToken: ${refreshToken}`
+    }
+
+    @UseGuards(GoogleAuthGuard)
+    @Get("test2")
+    test2() {
+        return `Success`
     }
   }

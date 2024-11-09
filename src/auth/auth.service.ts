@@ -26,12 +26,24 @@ export class AuthService {
     return await this.creditorService.create(googleUser);
   }
 
+  phoneLogin(phoneNumber: string){
+    const payload: AuthJwtPayload = { type: "phone", sub: phoneNumber };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
+
+    return {
+      accessToken,
+      refreshToken
+    };
+  }
+
   googleLogin(req){
     if (!req.user) {
         return 'No user from Google';
     }
 
-    const payload: AuthJwtPayload = { email: req.user.email, sub: req.user.id };
+    const payload: AuthJwtPayload = { type: "google", sub: req.user.id };
+    console.log(req.user.email)
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
 
@@ -42,8 +54,8 @@ export class AuthService {
     };
   }
 
-  async validateJwtUser(userId: number) {
-    const docRef = await this.creditorService.findById(""+userId);
+  async validateJwtUser(userId: string) {
+    const docRef = await this.creditorService.findById(userId);
     if (!docRef) throw new UnauthorizedException('User not found!');
     const user = (await docRef.get()).data();
     if (!user) throw new UnauthorizedException('User not found!');
@@ -51,7 +63,7 @@ export class AuthService {
   }
 
   async refreshToken(req) {
-    const payload: AuthJwtPayload = { email: req.user.email, sub: req.user.id };
+    const payload: AuthJwtPayload = { type: req.user.type, sub: req.user.id };
     const accessToken = this.jwtService.sign(payload);
     return {
       id: req.user.id,
