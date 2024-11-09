@@ -95,8 +95,7 @@ export class PaymentService {
     const debtor = await this.debtorService.findOne(payment.debtorId);
     return {
       ...payment,
-      debtorFirstName: debtor.firstName,
-      debtorLastName: debtor.lastName,
+      debtorNickname: debtor.nickname,
     };
   }
 
