@@ -34,6 +34,7 @@ import {
 import { Payment } from './entities/payment.entity';
 import { PaymentService } from './payment.service';
 import { ResponseDto } from '@/types/response.dto';
+import { GetPaymentDto } from './dto/get-payment.dto';
 
 @ApiTags('Payment')
 @Controller('payment')
@@ -117,7 +118,7 @@ export class PaymentController {
   @ApiAuthorizationHeader()
   @Get('history')
   @ApiOkResponse({
-    type: [Payment],
+    type: [GetPaymentDto],
     description: 'Get all payments by creditor Id',
   })
   async findAll(@Req() req: AuthReqType) {
@@ -129,7 +130,7 @@ export class PaymentController {
   @ApiAuthorizationHeader()
   @Get('history/debtor/:id')
   @ApiOkResponse({
-    type: [Payment],
+    type: [GetPaymentDto],
     description: 'Get all payments by debtor Id',
   })
   async findAllByDebtorId(

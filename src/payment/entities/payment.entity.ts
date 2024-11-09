@@ -12,8 +12,6 @@ export const PaymentSchema = z.object({
   loanId: z.string(),
   creditorId: z.string(),
   debtorId: z.string(),
-  debtorFirstName: z.string(),
-  debtorLastName: z.string(),
   amount: z.number().min(0, 'Amount is required'),
   paymentDate: z.coerce
     .date()

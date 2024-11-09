@@ -1,12 +1,13 @@
+import { LoanModule } from '@/loan/loan.module';
 import { Module } from '@nestjs/common';
-import { GuarantorService } from './guarantor.service';
-import { GuarantorController } from './guarantor.controller';
 import { FirebaseModule } from '../firebase/firebase.module';
-import { LoanService } from '@/loan/loan.service';
+import { GuarantorController } from './guarantor.controller';
+import { GuarantorService } from './guarantor.service';
 
 @Module({
-  imports: [FirebaseModule],
+  imports: [FirebaseModule, LoanModule],
   controllers: [GuarantorController],
-  providers: [GuarantorService, LoanService],
+  providers: [GuarantorService],
+  exports: [GuarantorService],
 })
 export class GuarantorModule {}

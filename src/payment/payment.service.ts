@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -9,6 +11,8 @@ import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { Payment, PaymentSchema } from './entities/payment.entity';
 import { LoanService } from '../loan/loan.service';
+import { DebtorService } from '@/debtor/debtor.service';
+import { GetPaymentDto } from './dto/get-payment.dto';
 
 export const paymentCollection = 'payment';
 
@@ -19,6 +23,8 @@ export class PaymentService {
   constructor(
     private firebaseRepository: FirebaseRepository,
     private loanService: LoanService,
+    @Inject(forwardRef(() => DebtorService))
+    private debtorService: DebtorService,
   ) {}
 
   generatePaymentImagePath(loanId: string, paymentId: string) {
@@ -77,7 +83,26 @@ export class PaymentService {
     return docRef;
   }
 
-  async findAll(creditorId: string): Promise<Payment[]> {
+  async injectDebtorName(
+    payment: Payment | GetPaymentDto,
+  ): Promise<GetPaymentDto> {
+    const debtor = await this.debtorService.findOne(payment.debtorId);
+    return {
+      ...payment,
+      debtorFirstName: debtor.firstName,
+      debtorLastName: debtor.lastName,
+    };
+  }
+
+  async injectImageUrl(
+    payment: Payment | GetPaymentDto,
+  ): Promise<Payment | GetPaymentDto> {
+    const imageUrl = this.generatePaymentImagePath(payment.loanId, payment.id);
+    payment.imageUrl = await this.firebaseRepository.getFileUrl(imageUrl);
+    return payment;
+  }
+
+  async findAll(creditorId: string): Promise<GetPaymentDto[]> {
     try {
       const snapshot = await this.firebaseRepository.db
         .collection(paymentCollection)
@@ -89,17 +114,15 @@ export class PaymentService {
         ...doc.data(),
       })) as Payment[];
 
-      // get signed url for images
+      // get signed url for images and inject debtor names
       const payments = await Promise.all(
         res.map(async (payment) => {
-          const imageUrl = this.generatePaymentImagePath(
-            payment.loanId,
-            payment.id,
-          );
-          payment.imageUrl = await this.firebaseRepository.getFileUrl(imageUrl);
-          return payment;
+          payment = await this.injectImageUrl(payment);
+          payment = await this.injectDebtorName(payment);
+          return payment as GetPaymentDto;
         }),
       );
+
       return payments;
     } catch (err: any) {
       this.logger.error(err?.message);
@@ -112,7 +135,7 @@ export class PaymentService {
   async findAllByDebtorId(
     creditorId: string,
     debtorId: string,
-  ): Promise<Payment[]> {
+  ): Promise<GetPaymentDto[]> {
     try {
       const snapshot = await this.firebaseRepository.db
         .collection(paymentCollection)
@@ -125,17 +148,15 @@ export class PaymentService {
         ...doc.data(),
       })) as Payment[];
 
-      // get signed url for images
+      // get signed url for images and inject debtor names
       const payments = await Promise.all(
         res.map(async (payment) => {
-          const imageUrl = this.generatePaymentImagePath(
-            payment.loanId,
-            payment.id,
-          );
-          payment.imageUrl = await this.firebaseRepository.getFileUrl(imageUrl);
-          return payment;
+          payment = await this.injectImageUrl(payment);
+          payment = await this.injectDebtorName(payment);
+          return payment as GetPaymentDto;
         }),
       );
+
       return payments;
     } catch (err: any) {
       this.logger.error(err?.message);

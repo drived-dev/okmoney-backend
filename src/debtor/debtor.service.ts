@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -18,7 +20,7 @@ import {
 import { UpdateDebtorDto } from './dto/update-debtor.dto';
 import { Debtor, DebtorSchema } from './entities/debtor.entity';
 
-const debtorCollection = 'debtor';
+export const debtorCollection = 'debtor';
 
 @Injectable()
 export class DebtorService {
@@ -27,6 +29,7 @@ export class DebtorService {
   constructor(
     private firebaseRepository: FirebaseRepository,
     private loanService: LoanService,
+    @Inject(forwardRef(() => PaymentService))
     private paymentService: PaymentService,
   ) {}
 
@@ -58,8 +61,6 @@ export class DebtorService {
         amount: createExistingDebtorDto.paidAmount,
         loanId: loan.id,
         debtorId: debtor.id,
-        debtorFirstName: debtor.firstName,
-        debtorLastName: debtor.lastName,
         creditorId: creditorId,
         paymentType: PaymentType.EXISTING,
       });

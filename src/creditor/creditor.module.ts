@@ -7,5 +7,6 @@ import { FirebaseModule } from '../firebase/firebase.module';
   imports: [FirebaseModule],
   controllers: [CreditorController],
   providers: [CreditorService],
+  exports: [CreditorService],
 })
 export class CreditorModule {}
