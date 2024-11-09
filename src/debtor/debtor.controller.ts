@@ -21,13 +21,13 @@ import {
   CreatedResponseDto,
   CreateExistingDebtorDto,
   CreateExistingDebtorSchema,
-  GetAllDebtorDto,
 } from './dto/create-debtor.dto';
 import { UpdateDebtorDto, UpdateDebtorSchema } from './dto/update-debtor.dto';
 import { UpdateLoanDto, UpdateLoanSchema } from '../loan/dto/update-loan.dto';
 import { LoanService } from '../loan/loan.service';
 import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
 import { ResponseDto } from '@/types/response.dto';
+import { GetDebtorDto } from './dto/get-debtor.dto';
 
 @ApiTags('Debtor')
 @Controller('debtor')
@@ -83,12 +83,31 @@ export class DebtorController {
   @ApiAuthorizationHeader()
   @Get('/mydebtors')
   @ApiOkResponse({
-    type: GetAllDebtorDto,
+    type: [GetDebtorDto],
     description: 'Get all debtors by creditor Id',
   })
   async findLoansWithDebtorDetails(@Req() req: AuthReqType) {
     const id = req.user?.id;
     const debtors = await this.debtorService.findLoansWithDebtorDetails(id);
+    return debtors;
+  }
+
+  @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
+  @Get('/mydebtors/:id')
+  @ApiOkResponse({
+    type: GetDebtorDto,
+    description: 'Get a debtor by creditor Id',
+  })
+  async findOneLoanWithDebtorDetails(
+    @Param('id') debtorId: string,
+    @Req() req: AuthReqType,
+  ) {
+    const id = req.user?.id;
+    const debtors = await this.debtorService.findOneLoanWithDebtorDetails(
+      id,
+      debtorId,
+    );
     return debtors;
   }
 

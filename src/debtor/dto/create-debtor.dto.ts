@@ -43,10 +43,3 @@ const CreatedResponseSchema = z.object({
 });
 
 export class CreatedResponseDto extends createZodDto(CreatedResponseSchema) {}
-
-const GetAllDebtorSchema = z.object({
-  loan: LoanSchema,
-  debtor: DebtorSchema.optional(),
-});
-
-export class GetAllDebtorDto extends createZodDto(GetAllDebtorSchema) {}
