@@ -8,7 +8,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { FirebaseRepository } from '../firebase/firebase.service';
-import { CreatePaymentDto } from './dto/create-payment.dto';
+import {
+  CreatePaymentDto,
+  CreatePaymentResponseDto,
+} from './dto/create-payment.dto';
 import { Payment, PaymentSchema } from './entities/payment.entity';
 import { LoanService } from '../loan/loan.service';
 import { DebtorService } from '@/debtor/debtor.service';
@@ -34,7 +37,7 @@ export class PaymentService {
   async create(
     createPaymentDto: CreatePaymentDto,
     file?: Express.Multer.File,
-  ): Promise<Payment> {
+  ): Promise<CreatePaymentResponseDto> {
     try {
       const docRef = await this.firebaseRepository.db
         .collection(paymentCollection)
@@ -55,8 +58,11 @@ export class PaymentService {
         data.imageUrl = await this.firebaseRepository.getFileUrl(imageUrl);
       }
 
-      await this.loanService.payLoan(data.loanId, data.amount);
-      return data;
+      const { loan } = await this.loanService.payLoan(data.loanId, data.amount);
+      return {
+        payment: data,
+        loan,
+      };
     } catch (err: any) {
       this.logger.error(err?.message);
       throw new InternalServerErrorException(err?.message, {
@@ -189,7 +195,7 @@ export class PaymentService {
     }
     await docRef.delete();
 
-    await this.loanService.payLoan(data.loanId, -data.amount);
-    return { message: 'Payment deleted successfully' };
+    const { loan } = await this.loanService.payLoan(data.loanId, -data.amount);
+    return { message: 'Payment deleted successfully', loan };
   }
 }

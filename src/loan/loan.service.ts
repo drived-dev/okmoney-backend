@@ -149,7 +149,10 @@ export class LoanService {
     }
   }
 
-  async payLoan(loanId: string, amount: number): Promise<{ message: string }> {
+  async payLoan(
+    loanId: string,
+    amount: number,
+  ): Promise<{ message: string; loan: Loan }> {
     const loanData = await this.findByIdWithData(loanId);
     const loan = LoanSchema.parse(loanData) as Loan;
     const docRef = await this.findById(loanId);
@@ -158,7 +161,8 @@ export class LoanService {
       remainingBalance: newAmount,
       updatedAt: Date.now(),
     });
-    return { message: 'Payment successful' };
+    loan.remainingBalance = newAmount;
+    return { message: 'Payment successful', loan: loan };
   }
 
   async update(
