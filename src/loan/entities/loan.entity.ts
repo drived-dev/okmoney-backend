@@ -2,21 +2,21 @@ import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 
 export enum LoanStatus {
-  OVERDUE = 0, // ค้างชำระ
-  UNDERDUE = 1, // ใกล้กำหนดชำระ
-  DUE = 2, // รอชำระ
-  CLOSED = 3,
+  OVERDUE = 'OVERDUE', // ค้างชำระ
+  UNDERDUE = 'UNDERDUE', // ใกล้กำหนดชำระ
+  DUE = 'DUE', // รอชำระ
+  CLOSED = 'CLOSED',
 }
 
 export enum InterestType {
-  FIXED = 0,
-  VARIABLE = 1,
+  FIXED = 'FIXED',
+  VARIABLE = 'VARIABLE',
 }
 
 export enum LoanTermType {
-  MONTHLY = 0,
-  WEEKLY = 1,
-  DAILY = 2,
+  MONTHLY = 'MONTHLY',
+  WEEKLY = 'WEEKLY',
+  DAILY = 'DAILY',
 }
 
 export const LoanSchema = z.object({

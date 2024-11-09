@@ -20,8 +20,8 @@ const GetDashboardLoan = z.object({
 export class GetDashboardLoanDto extends createZodDto(GetDashboardLoan) {}
 
 export enum LoanByTimeInterval {
-  'Year',
-  'Month',
+  'YEAR' = 'YEAR',
+  'MONTH' = 'MONTH',
 }
 
 const GetLoanByTime = z.object({

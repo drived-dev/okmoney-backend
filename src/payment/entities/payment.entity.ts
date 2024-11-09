@@ -2,9 +2,9 @@ import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 
 export enum PaymentType {
-  EXISTING = 0,
-  CASH = 1,
-  TRANSFER = 2,
+  EXISTING = 'EXISTING',
+  CASH = 'CASH',
+  TRANSFER = 'TRANSFER',
 }
 
 export const PaymentSchema = z.object({

@@ -143,7 +143,7 @@ export class DashboardService {
     return await this.getLoanByTime(
       creditorId,
       timebound,
-      LoanByTimeInterval.Year,
+      LoanByTimeInterval.YEAR,
     );
   }
 
@@ -167,7 +167,7 @@ export class DashboardService {
     return await this.getLoanByTime(
       creditorId,
       timebound,
-      LoanByTimeInterval.Month,
+      LoanByTimeInterval.MONTH,
     );
   }
 }
