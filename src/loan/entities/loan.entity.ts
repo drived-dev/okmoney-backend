@@ -2,9 +2,10 @@ import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 
 export enum LoanStatus {
-  PENDING = 0,
-  ACTIVE = 1,
-  CLOSED = 2,
+  OVERDUE = 0, // ค้างชำระ
+  UNDERDUE = 1, // ใกล้กำหนดชำระ
+  DUE = 2, // รอชำระ
+  CLOSED = 3,
 }
 
 export enum InterestType {
@@ -23,13 +24,13 @@ export const LoanSchema = z.object({
   loanNumber: z.string().optional(),
   principal: z.number().min(0, 'Principal is required'),
   loanStatus: z.nativeEnum(LoanStatus),
-  remainingBalance: z.number().min(0, 'Remaining balance is required'),
+  remainingBalance: z.number(),
   totalBalance: z.number().min(0, 'Total balance is required'),
-  totalLoanTerm: z.number().int().min(1, 'Total loan term is required'),
+  totalLoanTerm: z.number().int(),
   loanTermType: z.nativeEnum(LoanTermType),
-  loanTermInterval: z.number().int().min(0, 'Loan term interval is required'),
+  loanTermInterval: z.number().int(),
   interestType: z.nativeEnum(InterestType),
-  interestRate: z.number().min(0, 'Interest rate is required'),
+  interestRate: z.number(),
   dueDate: z.coerce.date().transform((date) => new Date(date).getTime()),
   tags: z.string().array(),
 

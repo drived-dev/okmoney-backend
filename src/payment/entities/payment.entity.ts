@@ -12,6 +12,8 @@ export const PaymentSchema = z.object({
   loanId: z.string(),
   creditorId: z.string(),
   debtorId: z.string(),
+  debtorFirstName: z.string(),
+  debtorLastName: z.string(),
   amount: z.number().min(0, 'Amount is required'),
   paymentDate: z.coerce
     .date()
@@ -23,11 +25,6 @@ export const PaymentSchema = z.object({
     .date()
     .transform((date) => new Date(date).getTime())
     .optional(),
-  updatedAt: z.coerce
-    .date()
-    .transform((date) => new Date(date).getTime())
-    .optional(),
-  // TODO: remove updatedAt from the schema
 });
 
 export class Payment extends createZodDto(PaymentSchema) {}

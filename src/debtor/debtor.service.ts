@@ -58,9 +58,15 @@ export class DebtorService {
         amount: createExistingDebtorDto.paidAmount,
         loanId: loan.id,
         debtorId: debtor.id,
+        debtorFirstName: debtor.firstName,
+        debtorLastName: debtor.lastName,
         creditorId: creditorId,
         paymentType: PaymentType.EXISTING,
       });
+      await this.loanService.payLoan(
+        loan.id,
+        createExistingDebtorDto.paidAmount,
+      );
       return { debtor, loan, payment };
     } catch (err: any) {
       await this.remove(debtor.id);
