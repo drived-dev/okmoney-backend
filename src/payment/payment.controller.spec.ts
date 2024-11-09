@@ -1,8 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { PaymentController } from './payment.controller';
-import { FirebaseModule } from '../firebase/firebase.module';
+import { DebtorModule } from '@/debtor/debtor.module';
+import { LoanModule } from '@/loan/loan.module';
 import { ConfigModule } from '@nestjs/config';
-import { LoanService } from '../loan/loan.service';
+import { Test, TestingModule } from '@nestjs/testing';
+import { FirebaseModule } from '../firebase/firebase.module';
+import { PaymentController } from './payment.controller';
 import { PaymentService } from './payment.service';
 
 describe('PaymentController', () => {
@@ -10,9 +11,14 @@ describe('PaymentController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [ConfigModule.forRoot(), FirebaseModule],
+      imports: [
+        ConfigModule.forRoot(),
+        FirebaseModule,
+        DebtorModule,
+        LoanModule,
+      ],
       controllers: [PaymentController],
-      providers: [LoanService, PaymentService],
+      providers: [PaymentService],
     }).compile();
 
     controller = module.get<PaymentController>(PaymentController);
