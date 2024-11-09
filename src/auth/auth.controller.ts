@@ -35,10 +35,12 @@ import { RefreshAuthGuard } from './refresh-auth.guard';
         if (typeof token === 'string') {
             return res.status(400).send(token);
         }
-        console.log(token)
         // TODO: change redirect url (to app)
-        return res.redirect(`http://localhost:3000/api/auth/test?token=${token.accessToken}&refreshToken=${token.refreshToken}`);
-    }
+        console.log(token)
+const redirectUrl = `exp://192.168.1.35:8081/auth/google?token=${token.accessToken}&refreshToken=${token.refreshToken}`;
+
+        // TODO: change redirect url (to app)
+        return res.redirect(302, redirectUrl);    }
 
     @UseGuards(RefreshAuthGuard)
     @Post("refresh")

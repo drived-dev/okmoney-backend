@@ -77,39 +77,52 @@ export class PaymentController {
   })
   async createPayment(
     @Req() req: AuthReqType,
-    @Body() createPaymentDto: { data: string }, // TODO: multipart form data send only file or string (JSON is not supported)
+    @Body() createPaymentDto: { data: string },
     @UploadedFile() file: Express.Multer.File,
   ) {
+    this.logger.debug(`Received payment creation request from user: ${req.user?.id}`);
+    this.logger.debug(`File received: ${file ? 'yes' : 'no'}`);
+    
     if (!req.user?.id) {
+      this.logger.error('User id is missing in the request');
       throw new BadRequestException('User id is required');
     }
 
-    if (!createPaymentDto?.data) {
-      this.logger.error('Data is required');
-      throw new BadRequestException('Data is required');
-    }
+    // if (!createPaymentDto?.data) {
+    //   this.logger.error('Payment data is missing in the request');
+    //   throw new BadRequestException('Data is required');
+    // }
 
+    this.logger.debug(`Raw payment data received: ${createPaymentDto[0]}`, { depth: null } );
     const data = JSON.parse(createPaymentDto?.data);
+    this.logger.debug(`Parsed payment data: ${JSON.stringify(data, null, 2)}`);
+    
     data.creditorId = req.user.id;
     const parsedData = CreatePaymentSchema.safeParse(data);
 
     if (parsedData.success === false) {
-      this.logger.error(parsedData.error);
+      this.logger.error(`Schema validation failed: ${JSON.stringify(parsedData.error.errors)}`);
       throw new BadRequestException(parsedData.error);
     }
+    this.logger.debug('Payment data validation successful');
 
     // check if user id is the owner of loan
+    this.logger.debug(`Fetching loan details for loanId: ${parsedData.data.loanId}`);
     const loan = await this.loanService.findByIdWithData(
       parsedData.data.loanId,
     );
+    
+    this.logger.debug(`Loan found: ${JSON.stringify(loan, null, 2)}`);
     if (loan?.creditorId !== req.user.id) {
       this.logger.error(
-        `${req.user?.id} are not the owner of the loan with id: ${loan.id}`,
+        `User ${req.user?.id} attempted to access loan ${loan.id} owned by ${loan.creditorId}`,
       );
       throw new BadRequestException('You are not the owner of this loan');
     }
 
+    this.logger.debug('Starting payment creation process');
     const payment = await this.paymentService.create(parsedData.data, file);
+    this.logger.debug(`Payment created successfully with ID: ${payment.id}`);
     return payment;
   }
 

@@ -26,6 +26,9 @@ export class PaymentService {
     file?: Express.Multer.File,
   ): Promise<Payment> {
     try {
+      this.logger.debug(
+        `Creating payment with data: ${JSON.stringify(createPaymentDto)}`,
+      );
       const docRef = await this.firebaseRepository.db
         .collection(paymentCollection)
         .add({
@@ -34,15 +37,19 @@ export class PaymentService {
           createdAt: Date.now(),
           updatedAt: Date.now(),
         });
+      this.logger.debug(`Payment document created with ID: ${docRef.id}`);
+
       const data = PaymentSchema.parse({
         id: docRef.id,
         ...(await docRef.get()).data(),
       }) as Payment;
 
       if (file) {
+        this.logger.debug(`Uploading payment image for payment: ${docRef.id}`);
         const imageUrl = this.generatePaymentImagePath(data.loanId, docRef.id);
         await this.firebaseRepository.uploadFile(file, imageUrl);
         data.imageUrl = await this.firebaseRepository.getFileUrl(imageUrl);
+        this.logger.debug(`Image uploaded successfully: ${data.imageUrl}`);
       }
 
       return data;
