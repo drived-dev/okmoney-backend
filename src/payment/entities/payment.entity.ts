@@ -2,9 +2,9 @@ import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 
 export enum PaymentType {
-  EXISTING = 0,
-  CASH = 1,
-  TRANSFER = 2,
+  EXISTING = 'EXISTING',
+  CASH = 'CASH',
+  TRANSFER = 'TRANSFER',
 }
 
 export const PaymentSchema = z.object({
@@ -23,11 +23,6 @@ export const PaymentSchema = z.object({
     .date()
     .transform((date) => new Date(date).getTime())
     .optional(),
-  updatedAt: z.coerce
-    .date()
-    .transform((date) => new Date(date).getTime())
-    .optional(),
-  // TODO: remove updatedAt from the schema
 });
 
 export class Payment extends createZodDto(PaymentSchema) {}

@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -17,8 +19,9 @@ import {
 } from './dto/create-debtor.dto';
 import { UpdateDebtorDto } from './dto/update-debtor.dto';
 import { Debtor, DebtorSchema } from './entities/debtor.entity';
+import { GetDebtorDto } from './dto/get-debtor.dto';
 
-const debtorCollection = 'debtor';
+export const debtorCollection = 'debtor';
 
 @Injectable()
 export class DebtorService {
@@ -27,6 +30,7 @@ export class DebtorService {
   constructor(
     private firebaseRepository: FirebaseRepository,
     private loanService: LoanService,
+    @Inject(forwardRef(() => PaymentService))
     private paymentService: PaymentService,
   ) {}
 
@@ -61,6 +65,10 @@ export class DebtorService {
         creditorId: creditorId,
         paymentType: PaymentType.EXISTING,
       });
+      await this.loanService.payLoan(
+        loan.id,
+        createExistingDebtorDto.paidAmount,
+      );
       return { debtor, loan, payment };
     } catch (err: any) {
       await this.remove(debtor.id);
@@ -148,7 +156,42 @@ export class DebtorService {
     }
   }
 
-  async findLoansWithDebtorDetails(id: string): Promise<any[]> {
+  async findOneLoanWithDebtorDetails(
+    creditorId: string,
+    debtorId: string,
+  ): Promise<GetDebtorDto> {
+    try {
+      const loan = await this.loanService.authorizeDebtorByCreditorId(
+        debtorId,
+        creditorId,
+      );
+
+      const debtorSnapshot = await this.firebaseRepository.db
+        .collection(debtorCollection)
+        .doc(debtorId)
+        .get();
+
+      const debtor = debtorSnapshot.exists
+        ? { id: debtorSnapshot.id, ...debtorSnapshot.data() }
+        : null;
+
+      return {
+        loan: LoanSchema.parse(loan),
+        debtor: DebtorSchema.parse(debtor),
+      };
+    } catch (err: any) {
+      if (err instanceof ZodError) {
+        throw new InternalServerErrorException(err?.errors, {
+          cause: err?.errors,
+        });
+      }
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
+      });
+    }
+  }
+
+  async findLoansWithDebtorDetails(id: string): Promise<GetDebtorDto[]> {
     try {
       const loans = await this.loanService.findAllByUserId(id);
 
@@ -170,7 +213,7 @@ export class DebtorService {
         }),
       );
 
-      return results as { loan: Loan; debtor: Debtor | null }[];
+      return results as { loan: Loan; debtor: Debtor }[];
     } catch (err: any) {
       if (err instanceof ZodError) {
         throw new InternalServerErrorException(err?.errors, {

@@ -1,9 +1,9 @@
 import { ResponseDto } from '@/types/response.dto';
+import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
 import {
   BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
   Logger,
   Param,
@@ -21,7 +21,6 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { ApiAuthorizationHeader } from 'src/utils/auth.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MockAuthGuard } from '../auth/mockAuthGuard';
 import { AuthReqType } from '../auth/reqType';
@@ -124,12 +123,12 @@ export class CreditorController {
     return status;
   }
 
-  @UseGuards(MockAuthGuard)
-  @ApiAuthorizationHeader()
-  @Delete()
-  @ApiOkResponse({ type: ResponseDto })
-  async remove(@Req() req: AuthReqType) {
-    const status = await this.creditorService.remove(req.user?.id);
-    return status;
-  }
+  // @UseGuards(MockAuthGuard)
+  // @ApiAuthorizationHeader()
+  // @Delete()
+  // @ApiOkResponse({ type: ResponseDto })
+  // async remove(@Req() req: AuthReqType) {
+  //   const status = await this.creditorService.remove(req.user?.id);
+  //   return status;
+  // }
 }

@@ -1,3 +1,4 @@
+import { ResponseDto } from '@/types/response.dto';
 import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
 import {
   BadRequestException,
@@ -29,11 +30,11 @@ import { AuthReqType } from '../auth/reqType';
 import { LoanService } from '../loan/loan.service';
 import {
   CreatePaymentDto,
+  CreatePaymentResponseDto,
   CreatePaymentSchema,
 } from './dto/create-payment.dto';
-import { Payment } from './entities/payment.entity';
+import { GetPaymentDto } from './dto/get-payment.dto';
 import { PaymentService } from './payment.service';
-import { ResponseDto } from '@/types/response.dto';
 
 @ApiTags('Payment')
 @Controller('payment')
@@ -73,7 +74,7 @@ export class PaymentController {
   })
   @ApiCreatedResponse({
     description: 'The payment has been successfully created.',
-    type: Payment,
+    type: CreatePaymentResponseDto,
   })
   async createPayment(
     @Req() req: AuthReqType,
@@ -117,7 +118,7 @@ export class PaymentController {
   @ApiAuthorizationHeader()
   @Get('history')
   @ApiOkResponse({
-    type: [Payment],
+    type: [GetPaymentDto],
     description: 'Get all payments by creditor Id',
   })
   async findAll(@Req() req: AuthReqType) {
@@ -129,7 +130,7 @@ export class PaymentController {
   @ApiAuthorizationHeader()
   @Get('history/debtor/:id')
   @ApiOkResponse({
-    type: [Payment],
+    type: [GetPaymentDto],
     description: 'Get all payments by debtor Id',
   })
   async findAllByDebtorId(

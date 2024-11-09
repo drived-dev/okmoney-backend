@@ -1,27 +1,27 @@
 import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 
-const GetDebtor = z.object({
+const GetDashboardDebtor = z.object({
   totalDebtors: z.number().int(),
   clearedDebtors: z.number().int(),
   currentDebtors: z.number().int(),
 });
 
-export class GetDebtorDto extends createZodDto(GetDebtor) {}
+export class GetDashboardDebtorDto extends createZodDto(GetDashboardDebtor) {}
 
 // TODO: waiting for Mel to confirm
-const GetLoan = z.object({
+const GetDashboardLoan = z.object({
   totalLoan: z.number(),
   accuredIncome: z.number(),
   totalEarned: z.number(),
   profit: z.number(),
 });
 
-export class GetLoanDto extends createZodDto(GetLoan) {}
+export class GetDashboardLoanDto extends createZodDto(GetDashboardLoan) {}
 
 export enum LoanByTimeInterval {
-  'Year',
-  'Month',
+  'YEAR' = 'YEAR',
+  'MONTH' = 'MONTH',
 }
 
 const GetLoanByTime = z.object({

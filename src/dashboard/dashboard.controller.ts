@@ -3,7 +3,11 @@ import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { MockAuthGuard } from '../auth/mockAuthGuard';
 import { AuthReqType } from '../auth/reqType';
 import { DashboardService } from './dashboard.service';
-import { GetDebtorDto, GetLoanByTimeDto, GetLoanDto } from './dashboard.dto';
+import {
+  GetDashboardDebtorDto,
+  GetLoanByTimeDto,
+  GetDashboardLoanDto,
+} from './dashboard.dto';
 
 @UseGuards(MockAuthGuard)
 @ApiTags('dashboard')
@@ -12,7 +16,7 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @ApiOkResponse({
-    type: GetDebtorDto,
+    type: GetDashboardDebtorDto,
     description: 'Get debtors with 3 types: total, cleared, uncleared',
   })
   @Get('debtors')
@@ -21,7 +25,7 @@ export class DashboardController {
   }
 
   @ApiOkResponse({
-    type: GetLoanDto,
+    type: GetDashboardLoanDto,
     description: "Get total loan's data",
   })
   @Get('loan')

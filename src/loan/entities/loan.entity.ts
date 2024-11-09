@@ -2,20 +2,21 @@ import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 
 export enum LoanStatus {
-  PENDING = 0,
-  ACTIVE = 1,
-  CLOSED = 2,
+  OVERDUE = 'OVERDUE', // ค้างชำระ
+  UNDERDUE = 'UNDERDUE', // ใกล้กำหนดชำระ
+  DUE = 'DUE', // รอชำระ
+  CLOSED = 'CLOSED',
 }
 
 export enum InterestType {
-  FIXED = 0,
-  VARIABLE = 1,
+  FIXED = 'FIXED',
+  VARIABLE = 'VARIABLE',
 }
 
 export enum LoanTermType {
-  MONTHLY = 0,
-  WEEKLY = 1,
-  DAILY = 2,
+  MONTHLY = 'MONTHLY',
+  WEEKLY = 'WEEKLY',
+  DAILY = 'DAILY',
 }
 
 export const LoanSchema = z.object({
@@ -23,13 +24,13 @@ export const LoanSchema = z.object({
   loanNumber: z.string().optional(),
   principal: z.number().min(0, 'Principal is required'),
   loanStatus: z.nativeEnum(LoanStatus),
-  remainingBalance: z.number().min(0, 'Remaining balance is required'),
+  remainingBalance: z.number(),
   totalBalance: z.number().min(0, 'Total balance is required'),
-  totalLoanTerm: z.number().int().min(1, 'Total loan term is required'),
+  totalLoanTerm: z.number().int(),
   loanTermType: z.nativeEnum(LoanTermType),
-  loanTermInterval: z.number().int().min(0, 'Loan term interval is required'),
+  loanTermInterval: z.number().int(),
   interestType: z.nativeEnum(InterestType),
-  interestRate: z.number().min(0, 'Interest rate is required'),
+  interestRate: z.number(),
   dueDate: z.coerce.date().transform((date) => new Date(date).getTime()),
   tags: z.string().array(),
 

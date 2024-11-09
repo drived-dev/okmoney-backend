@@ -1,13 +1,14 @@
-import { Module } from '@nestjs/common';
-import { DebtorService } from './debtor.service';
+import { LoanModule } from '@/loan/loan.module';
+import { PaymentModule } from '@/payment/payment.module';
+import { forwardRef, Module } from '@nestjs/common';
+import { FirebaseModule } from '@/firebase/firebase.module';
 import { DebtorController } from './debtor.controller';
-import { FirebaseModule } from '../firebase/firebase.module';
-import { LoanService } from '../loan/loan.service';
-import { PaymentService } from '../payment/payment.service';
+import { DebtorService } from './debtor.service';
 
 @Module({
-  imports: [FirebaseModule],
+  imports: [FirebaseModule, forwardRef(() => PaymentModule), LoanModule],
   controllers: [DebtorController],
-  providers: [DebtorService, LoanService, PaymentService],
+  providers: [DebtorService],
+  exports: [DebtorService],
 })
 export class DebtorModule {}
