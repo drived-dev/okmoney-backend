@@ -7,8 +7,8 @@ export class AppService {
     return 'Hello World!';
   }
 
-  // @Cron('45 * * * * *')
-  // handleCron() {
-  //   console.log('Called when the current second is 45');
-  // }
+  @Cron('45 * * * * *')
+  handleCron() {
+    console.log('Called when the current second is 45');
+  }
 }

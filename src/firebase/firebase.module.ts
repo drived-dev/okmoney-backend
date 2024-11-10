@@ -7,11 +7,12 @@ const firebaseProvider = {
   provide: 'FIREBASE_APP',
   inject: [ConfigService],
   useFactory: (configService: ConfigService) => {
+    const private_key = JSON.parse(configService.get<string>('PRIVATE_KEY'))
     const firebaseConfig = {
       type: configService.get<string>('TYPE'),
       project_id: configService.get<string>('PROJECT_ID'),
       private_key_id: configService.get<string>('PRIVATE_KEY_ID'),
-      private_key: configService.get<string>('PRIVATE_KEY'),
+      private_key: private_key.privateKey,
       client_email: configService.get<string>('CLIENT_EMAIL'),
       client_id: configService.get<string>('CLIENT_ID'),
       auth_uri: configService.get<string>('AUTH_URI'),
