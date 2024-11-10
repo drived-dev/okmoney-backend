@@ -10,6 +10,7 @@ import { PaymentModule } from './payment/payment.module';
 import { CreditorModule } from './creditor/creditor.module';
 import { AuthModule } from './auth/auth.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     PaymentModule,
     AuthModule,
     DashboardModule,
+    FirebaseModule
   ],
   controllers: [AppController],
   providers: [AppService],
