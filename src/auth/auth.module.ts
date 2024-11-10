@@ -11,6 +11,7 @@ import jwtConfig from './jwt.config';
 import { JwtStrategy } from './jwt.strategy';
 import refreshJwtConfig from './refresh-jwt.config';
 import { RefreshJwtStrategy } from './refresh.strategy';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { RefreshJwtStrategy } from './refresh.strategy';
     FirebaseModule,
     ConfigModule.forRoot(),
     ConfigModule.forFeature(jwtConfig),
-    ConfigModule.forFeature(refreshJwtConfig)
+    ConfigModule.forFeature(refreshJwtConfig),
+    NotificationModule
   ],
   providers: [AuthService, GoogleStrategy, CreditorService,
     {
