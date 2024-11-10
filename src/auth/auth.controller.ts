@@ -8,22 +8,29 @@ import {
     Request,
     Res,
     UseGuards,
-    Query
+    Query,
+    Body
   } from '@nestjs/common';
   import { AuthService } from './auth.service';
   import { AuthGuard } from '@nestjs/passport';
   import { GoogleAuthGuard } from './google.guard';
 import { RefreshAuthGuard } from './refresh-auth.guard';
+import { MockAuthGuard } from './mockAuthGuard';
+import { JwtAuthGuard } from './jwt-auth.guard';
   
   @Controller('auth')
   export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @Post('phone/login')
-    async login(@Request() req){
-      const token = await this.authService.phoneLogin(req.user.phone);
+    async login(
+      @Body('phone') phone: string,
+      @Body('password') password: string,
+    ){
+      const token = await this.authService.phoneLogin(phone, password);
       console.log(token)
-      return { accessToken: token.accessToken, refreshToken: token.refreshToken }
+      if(token) return { accessToken: token.accessToken, refreshToken: token.refreshToken }
+      return "Invalid PhoneNumber or Password"
     }
 
     @UseGuards(GoogleAuthGuard)
@@ -61,7 +68,7 @@ import { RefreshAuthGuard } from './refresh-auth.guard';
         return `Token: ${token}<br>RefreshToken: ${refreshToken}`
     }
 
-    @UseGuards(GoogleAuthGuard)
+    @UseGuards(JwtAuthGuard)
     @Get("test2")
     test2() {
         return `Success`

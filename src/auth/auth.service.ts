@@ -21,20 +21,24 @@ export class AuthService {
     }
     console.log("gg user", googleUser.googleId)
     //const user = await this.creditorService.findByEmail(googleUser.email);
-    const user = await this.creditorService.checkId(googleUser.googleId)
+    const user = await this.creditorService.checkGoogleId(googleUser.googleId)
     if (user != null) return user;
     return await this.creditorService.create(googleUser);
   }
 
-  phoneLogin(phoneNumber: string){
-    const payload: AuthJwtPayload = { type: "phone", sub: phoneNumber };
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
+  async phoneLogin(phoneNumber: string, password: string){
+    const user = await this.creditorService.checkPhonePass(phoneNumber, password)
+    if (user != null){
+      const payload: AuthJwtPayload = { type: "phone", sub: user.id };
+      const accessToken = this.jwtService.sign(payload);
+      const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
 
-    return {
-      accessToken,
-      refreshToken
-    };
+      return {
+        accessToken,
+        refreshToken
+      };
+    }
+    return null
   }
 
   googleLogin(req){
