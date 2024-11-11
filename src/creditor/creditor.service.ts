@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -7,13 +8,15 @@ import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreateCreditorDto } from './dto/create-creditor.dto';
 import { UpdateCreditorDto } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
+import { generateOtp } from '@/utils/generateOtp';
+import { NotificationService } from '../notification/notification.service';
 
 const creditorCollection = 'creditor';
 
 // TODO: add logger for cause errors
 @Injectable()
 export class CreditorService {
-  constructor(private firebaseRepository: FirebaseRepository) {}
+  constructor(private firebaseRepository: FirebaseRepository, private notificationService: NotificationService) {}
 
   async findById(
     id: string,
@@ -32,7 +35,40 @@ export class CreditorService {
     return docRef;
   }
 
-  async checkId(googleId: string) {
+  async checkPhonePass(phone: string, password: string) {
+    if (!phone || !password) {
+      throw new Error('PhoneNumber and Password is required and cannot be empty');
+    }
+    const querySnapshot = await this.firebaseRepository.db
+      .collection(creditorCollection)
+      .where('phoneNumber', '==', phone)
+      .where('password', '==', password)
+      .get();
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    return querySnapshot.docs[0].ref;
+  }
+
+  async checkPhone(phone: string) {
+    if (!phone) {
+      throw new Error('PhoneNumber is required and cannot be empty');
+    }
+    const querySnapshot = await this.firebaseRepository.db
+      .collection(creditorCollection)
+      .where('phoneNumber', '==', phone)
+      .get();
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    return querySnapshot.docs[0].ref;
+  }
+
+  async checkGoogleId(googleId: string) {
     if (!googleId) {
       throw new Error('googleId is required and cannot be empty');
     }
@@ -48,25 +84,6 @@ export class CreditorService {
     return querySnapshot.docs[0].ref;
   }
 
-  // async createWithId(createCreditorDto: CreateCreditorDto, id: string): Promise<Creditor> {
-  //   // TODO: handle email or something already exists?
-  //   try {
-  //     const docRef = await this.firebaseRepository.db
-  //       .collection(creditorCollection)
-  //       .doc(id);
-  //     await docRef.set({
-  //         ...createCreditorDto,
-  //         createdAt: Date.now(),
-  //         updatedAt: Date.now(),
-  //       });
-  //     const data = (await docRef.get()).data();
-  //     return { id: id, ...data } as Creditor;
-  //   } catch (err: any) {
-  //     throw new InternalServerErrorException(err?.message, {
-  //       cause: err?.message,
-  //     });
-  //   }
-  // }
   generateProfileImagePath(id: string) {
     return 'profileImage/' + id;
   }
@@ -80,11 +97,45 @@ export class CreditorService {
 
   async create(createCreditorDto: CreateCreditorDto): Promise<Creditor> {
     // TODO: handle email or something already exists?
+    if(createCreditorDto.phoneNumber){
+      const ref = await this.checkPhone(createCreditorDto.phoneNumber)
+      if(ref != null) throw new ForbiddenException("User already exist")
+    }
+
     try {
       const docRef = await this.firebaseRepository.db
         .collection(creditorCollection)
         .add({
           ...createCreditorDto,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      const data = (await docRef.get()).data();
+      return { id: docRef.id, ...data } as Creditor;
+    } catch (err: any) {
+      throw new InternalServerErrorException(err?.message, {
+        cause: err?.message,
+      });
+    }
+  }
+
+  async createWithPhone(createCreditorDto: CreateCreditorDto): Promise<Creditor> {
+    // TODO: handle email or something already exists?
+    if(createCreditorDto.phoneNumber){
+      const ref = await this.checkPhone(createCreditorDto.phoneNumber)
+      if(ref != null) throw new ForbiddenException("User already exist")
+    }
+    else throw new ForbiddenException("no phone number provided")
+
+    const otp = generateOtp()
+
+    try {
+      this.notificationService.sendSms(createCreditorDto.phoneNumber, "This is the otp for logging in to OK Money: "+otp)
+      const docRef = await this.firebaseRepository.db
+        .collection(creditorCollection)
+        .add({
+          ...createCreditorDto,
+          password: otp,
           createdAt: Date.now(),
           updatedAt: Date.now(),
         });
