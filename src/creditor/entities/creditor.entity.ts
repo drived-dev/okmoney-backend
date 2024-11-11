@@ -43,6 +43,7 @@ export const CreditorSchema = z.object({
   googleId: z.string().optional(),
   facebookId: z.string().optional(),
   lineId: z.string().optional(),
+  password: z.string().optional(),
 });
 
 export class Creditor extends createZodDto(CreditorSchema) {}

@@ -74,7 +74,7 @@ export class CreditorController {
     @Body(new ZodPipe(CreateCreditorSchema))
     createCreditorDto: CreateCreditorDto,
   ): Promise<Creditor> {
-    const creditor = await this.creditorService.create(createCreditorDto);
+    const creditor = await this.creditorService.createWithPhone(createCreditorDto);
     return creditor;
   }
 
