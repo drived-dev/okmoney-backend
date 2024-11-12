@@ -34,9 +34,7 @@ export class CreditorService {
       .doc(id);
     const doc = await docRef.get();
     if (!doc.exists) {
-      throw new NotFoundException(`Not Found: ${id} does not exist`, {
-        cause: `Not Found: ${id} does not exist`,
-      });
+      throw new NotFoundException(`Not Found: ${id} does not exist`);
     }
     return docRef;
   }
@@ -166,7 +164,7 @@ export class CreditorService {
 
   async getRolePackage(creditorId: string) {
     const creditor = await this.findOne(creditorId);
-    return creditor.rolePackage;
+    return { id: creditorId, rolePackage: creditor.rolePackage };
   }
 
   async findAll(): Promise<Creditor[]> {
