@@ -64,13 +64,6 @@ export class GuarantorService {
       .where('creditorId', '==', creditorId)
       .where('guarantorId', '!=', null)
       .get();
-
-    if (loanRef.empty) {
-      throw new NotFoundException(
-        `No loans with guarantors found for creditor ID = ${creditorId}`,
-      );
-    }
-
     return loanRef;
   }
 

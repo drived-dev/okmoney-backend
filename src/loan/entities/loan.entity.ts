@@ -38,6 +38,15 @@ export const LoanSchema = z
     debtorId: z.string(),
     creditorId: z.string(),
     guarantorId: z.string().optional(),
+
+    createdAt: z.coerce
+      .date()
+      .transform((date) => new Date(date).getTime())
+      .optional(),
+    updatedAt: z.coerce
+      .date()
+      .transform((date) => new Date(date).getTime())
+      .optional(),
   })
   .strict();
 

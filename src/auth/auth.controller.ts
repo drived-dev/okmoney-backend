@@ -1,22 +1,17 @@
 import {
+  Body,
   Controller,
   Get,
-  HttpCode,
-  HttpStatus,
   Post,
+  Query,
   Req,
-  Request,
   Res,
   UseGuards,
-  Query,
-  Body,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from '@nestjs/passport';
 import { GoogleAuthGuard } from './google.guard';
-import { RefreshAuthGuard } from './refresh-auth.guard';
-import { MockAuthGuard } from './mockAuthGuard';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { RefreshAuthGuard } from './refresh-auth.guard';
 
 @Controller('auth')
 export class AuthController {

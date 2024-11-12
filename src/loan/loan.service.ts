@@ -71,19 +71,24 @@ export class LoanService {
         `Loan with ${attr} id = ${id} that you are owner does not exist`,
       );
     }
-    return loanRef.docs.map(
-      (loanDoc) =>
-        LoanSchema.parse({ ...loanDoc.data(), id: loanDoc.id }) as Loan,
-    ) as Loan[];
+    try {
+      const loans = loanRef.docs.map((loanDoc) => {
+        return LoanSchema.parse({ ...loanDoc.data(), id: loanDoc.id }) as Loan;
+      }) as Loan[];
+      return loans;
+    } catch (err) {
+      this.logger.error(err);
+      throw new InternalServerErrorException(err);
+    }
   }
 
   async authorizeDebtorByCreditorId(
     debtorId: string,
     creditorId: string,
   ): Promise<Loan> {
-    const loan = LoanSchema.parse(
-      (await this.findByGivenId('debtorId', debtorId, creditorId))[0],
-    ) as Loan;
+    const loan = (
+      await this.findByGivenId('debtorId', debtorId, creditorId)
+    )[0];
     return loan;
   }
 
@@ -91,9 +96,9 @@ export class LoanService {
     guarantorId: string,
     creditorId: string,
   ): Promise<Loan> {
-    const loan = LoanSchema.parse(
-      (await this.findByGivenId('guarantorId', guarantorId, creditorId))[0],
-    ) as Loan;
+    const loan = (
+      await this.findByGivenId('guarantorId', guarantorId, creditorId)
+    )[0] as Loan;
     return loan;
   }
 

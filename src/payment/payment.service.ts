@@ -45,7 +45,6 @@ export class PaymentService {
           ...createPaymentDto,
           imageUrl: 'Not empty',
           createdAt: Date.now(),
-          updatedAt: Date.now(),
         });
       const data = PaymentSchema.parse({
         id: docRef.id,
