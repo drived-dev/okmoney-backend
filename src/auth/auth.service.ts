@@ -75,9 +75,8 @@ export class AuthService {
     };
   }
 
-  async lineLogin(lineId){
-    const payload: AuthJwtPayload = { type: "line", sub: lineId };
-    console.log(lineId)
+  async lineLogin(userId){
+    const payload: AuthJwtPayload = { type: "line", sub: userId };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
     return { accessToken, refreshToken };

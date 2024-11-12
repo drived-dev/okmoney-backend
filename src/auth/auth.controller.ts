@@ -96,7 +96,7 @@ import * as jwt from 'jsonwebtoken';
         console.log(response.data);
         const lineId = jwt.decode(response.data.id_token)?.sub;
         
-        await this.authService.validateLineUser({
+        const user = await this.authService.validateLineUser({
           email: "",
           firstName: "",
           lastName: "",
@@ -105,7 +105,7 @@ import * as jwt from 'jsonwebtoken';
           lineId: lineId,
         });
 
-        const token = await this.authService.lineLogin(lineId);
+        const token = await this.authService.lineLogin(user.id);
         console.log('Generated tokens:', token);
         const redirectUrl = `${process.env.FRONTEND_URL}/auth/line?token=${token.accessToken}&refreshToken=${token.refreshToken}`;
         return res.redirect(302, redirectUrl);
