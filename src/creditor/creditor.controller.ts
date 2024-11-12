@@ -35,6 +35,7 @@ import {
   UpdateCreditorSchema,
 } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
+import { RolePackage } from './entities/rolePackage.entity';
 
 // TODO: Create test for all endpoints
 // TODO: Add token required on header for all endpoints
@@ -74,7 +75,8 @@ export class CreditorController {
     @Body(new ZodPipe(CreateCreditorSchema))
     createCreditorDto: CreateCreditorDto,
   ): Promise<Creditor> {
-    const creditor = await this.creditorService.createWithPhone(createCreditorDto);
+    const creditor =
+      await this.creditorService.createWithPhone(createCreditorDto);
     return creditor;
   }
 
@@ -94,8 +96,19 @@ export class CreditorController {
     if (!id) {
       throw new BadRequestException('Id is required');
     }
-    const creditor = await this.creditorService.findOne(id);
+    const creditor = await this.creditorService.findOneWithProfileImage(id);
     return creditor;
+  }
+
+  @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
+  @Get('/rolepackage')
+  @ApiOkResponse({
+    schema: { type: 'string', enum: Object.values(RolePackage) },
+  })
+  async getRolePackage(@Req() req: AuthReqType): Promise<RolePackage> {
+    const rolePackage = await this.creditorService.getRolePackage(req.user.id);
+    return rolePackage;
   }
 
   @UseGuards(MockAuthGuard)
@@ -103,7 +116,9 @@ export class CreditorController {
   @Get()
   @ApiOkResponse({ type: Creditor })
   async findOne(@Req() req: AuthReqType): Promise<Creditor> {
-    const creditor = await this.creditorService.findOne(req.user?.id);
+    const creditor = await this.creditorService.findOneWithProfileImage(
+      req.user?.id,
+    );
     return creditor;
   }
 
