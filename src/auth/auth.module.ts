@@ -12,18 +12,21 @@ import { JwtStrategy } from './jwt.strategy';
 import refreshJwtConfig from './refresh-jwt.config';
 import { RefreshJwtStrategy } from './refresh.strategy';
 import { NotificationModule } from '../notification/notification.module';
+import { LineStrategy } from './line.strategy';
+import { HttpModule, HttpService } from '@nestjs/axios';
 
 @Module({
   imports: [
-    PassportModule,
+    PassportModule.register({session: true}),
     JwtModule.registerAsync(jwtConfig.asProvider()),
     FirebaseModule,
     ConfigModule.forRoot(),
     ConfigModule.forFeature(jwtConfig),
     ConfigModule.forFeature(refreshJwtConfig),
-    NotificationModule
+    NotificationModule,
+    HttpModule,
   ],
-  providers: [AuthService, GoogleStrategy, CreditorService,
+  providers: [AuthService, GoogleStrategy, LineStrategy, CreditorService,
     {
       provide: 'CONFIGURATION(googleOAuth)',  // Provide the "googleOAuth" configuration
       useValue: {

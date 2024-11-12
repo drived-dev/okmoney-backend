@@ -17,10 +17,15 @@ import {
 import { RefreshAuthGuard } from './refresh-auth.guard';
 import { MockAuthGuard } from './mockAuthGuard';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { LineAuthGuard } from './line.guard';
+import { HttpService } from '@nestjs/axios';
+import * as qs from 'qs';
+import { firstValueFrom } from 'rxjs';
+import * as jwt from 'jsonwebtoken';
   
   @Controller('auth')
   export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(private readonly authService: AuthService, private readonly httpService: HttpService) {}
 
     @Post('phone/login')
     async login(
@@ -59,6 +64,55 @@ import { JwtAuthGuard } from './jwt-auth.guard';
     @Post("refresh")
     refreshToken(@Req() req) {
       return this.authService.refreshToken(req);
+    }
+
+    @UseGuards(LineAuthGuard)
+    @Get('line/login')
+    lineLogin() {}
+
+    @Get('line/callback')
+    async lineCallback(
+      @Query('code') code: string,
+      @Res() res
+    ) {
+      const url = 'https://api.line.me/oauth2/v2.1/token';
+      
+      const data = qs.stringify({
+        grant_type: 'authorization_code',
+        code: code,
+        redirect_uri: 'http://localhost:3000/api/auth/line/callback',
+        client_id: process.env.LINE_CHANNEL_ID,
+        client_secret: process.env.LINE_CHANNEL_SECRET,
+      });
+  
+      const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
+  
+      try {
+        const response = await firstValueFrom(
+          this.httpService.post(url, data, { headers })
+        );
+        console.log(response.data);
+        const lineId = jwt.decode(response.data.id_token)?.sub;
+        
+        await this.authService.validateLineUser({
+          email: "",
+          firstName: "",
+          lastName: "",
+          storeName: "",
+          rolePackage: "FREE",
+          lineId: lineId,
+        });
+
+        const token = await this.authService.lineLogin(lineId);
+        console.log('Generated tokens:', token);
+        const redirectUrl = `${process.env.FRONTEND_URL}/auth/line?token=${token.accessToken}&refreshToken=${token.refreshToken}`;
+        return res.redirect(302, redirectUrl);
+
+      } catch (error) {
+        console.error('Error making POST request', error);
+      }
     }
 
     @Get("test?")

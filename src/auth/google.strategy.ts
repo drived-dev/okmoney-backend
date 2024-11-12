@@ -36,7 +36,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       firstName: profile.name.givenName,
       lastName: profile.name.familyName,
       storeName: "",
-      rolePackage: 0,
+      rolePackage: "FREE",
       googleId: profile.id,
       //avatarUrl: profile.photos[0].value,
       //password: '',

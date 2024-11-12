@@ -19,11 +19,28 @@ export class AuthService {
     if (!googleUser.email) {
         throw new UnauthorizedException('Google user email is required');
     }
-    console.log("gg user", googleUser.googleId)
-    //const user = await this.creditorService.findByEmail(googleUser.email);
+    console.log("google user ", googleUser.googleId)
     const user = await this.creditorService.checkGoogleId(googleUser.googleId)
-    if (user != null) return user;
+    if (user != null) {
+      console.log("google user login")
+      return user;
+    }
+    console.log("creating user with google account")
     return await this.creditorService.create(googleUser);
+  }
+
+  async validateLineUser(lineUser) {
+    if (!lineUser.lineId) {
+        throw new UnauthorizedException('Line user is required');
+    }
+    console.log("line user ", lineUser.lineId)
+    const user = await this.creditorService.checkLineId(lineUser.lineId)
+    if (user != null) {
+      console.log("line user login")
+      return user;
+    }
+    console.log("creating user with line account")
+    return await this.creditorService.create(lineUser);
   }
 
   async phoneLogin(phoneNumber: string, password: string){
@@ -56,6 +73,14 @@ export class AuthService {
       accessToken,
       refreshToken
     };
+  }
+
+  async lineLogin(lineId){
+    const payload: AuthJwtPayload = { type: "line", sub: lineId };
+    console.log(lineId)
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
+    return { accessToken, refreshToken };
   }
 
   async validateJwtUser(userId: string) {

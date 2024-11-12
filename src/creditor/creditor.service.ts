@@ -84,6 +84,22 @@ export class CreditorService {
     return querySnapshot.docs[0].ref;
   }
 
+  async checkLineId(lineId: string) {
+    if (!lineId) {
+      throw new Error('lineId is required and cannot be empty');
+    }
+    const querySnapshot = await this.firebaseRepository.db
+      .collection(creditorCollection)
+      .where('lineId', '==', lineId)
+      .get();
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    return querySnapshot.docs[0].ref;
+  }
+
   generateProfileImagePath(id: string) {
     return 'profileImage/' + id;
   }
