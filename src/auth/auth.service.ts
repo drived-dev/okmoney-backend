@@ -19,20 +19,48 @@ export class AuthService {
     if (!googleUser.email) {
       throw new UnauthorizedException('Google user email is required');
     }
-    console.log('gg user', googleUser.googleId);
-    //const user = await this.creditorService.findByEmail(googleUser.email);
-    const user = await this.creditorService.checkGoogleId(googleUser.googleId);
-    if (user != null) return user;
+    console.log("google user ", googleUser.googleId)
+    const user = await this.creditorService.checkGoogleId(googleUser.googleId)
+    if (user != null) {
+      console.log("google user login")
+      return user;
+    }
+    console.log("creating user with google account")
     return await this.creditorService.create(googleUser);
   }
 
-  async phoneLogin(phoneNumber: string, password: string) {
-    const user = await this.creditorService.checkPhonePass(
-      phoneNumber,
-      password,
-    );
+  async validateLineUser(lineUser) {
+    if (!lineUser.lineId) {
+        throw new UnauthorizedException('Line user is required');
+    }
+    console.log("line user ", lineUser.lineId)
+    const user = await this.creditorService.checkLineId(lineUser.lineId)
     if (user != null) {
-      const payload: AuthJwtPayload = { type: 'phone', sub: user.id };
+      console.log("line user login")
+      return user;
+    }
+    console.log("creating user with line account")
+    return await this.creditorService.create(lineUser);
+  }
+
+  async validateFacebookUser(facebookUser) {
+    if (!facebookUser.facebookId) {
+        throw new UnauthorizedException('Facebook user is required');
+    }
+    console.log("facebook user ", facebookUser.facebookId)
+    const user = await this.creditorService.checkFacebookId(facebookUser.facebookId)
+    if (user != null) {
+      console.log("facebook user login")
+      return user;
+    }
+    console.log("creating user with facebook account")
+    return await this.creditorService.create(facebookUser);
+  }
+
+  async phoneLogin(phoneNumber: string, password: string){
+    const user = await this.creditorService.checkPhonePass(phoneNumber, password)
+    if (user != null){
+      const payload: AuthJwtPayload = { type: "phone", sub: user.id };
       const accessToken = this.jwtService.sign(payload);
       const refreshToken = this.jwtService.sign(
         payload,
@@ -62,6 +90,20 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async lineLogin(userId){
+    const payload: AuthJwtPayload = { type: "line", sub: userId };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
+    return { accessToken, refreshToken };
+  }
+
+  async facebookLogin(userId){
+    const payload: AuthJwtPayload = { type: "line", sub: userId };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
+    return { accessToken, refreshToken };
   }
 
   async validateJwtUser(userId: string) {
