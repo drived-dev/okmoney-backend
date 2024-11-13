@@ -21,15 +21,18 @@ import { NotificationModule } from '../notification/notification.module';
     ConfigModule.forRoot(),
     ConfigModule.forFeature(jwtConfig),
     ConfigModule.forFeature(refreshJwtConfig),
-    NotificationModule
+    NotificationModule,
   ],
-  providers: [AuthService, GoogleStrategy, CreditorService,
+  providers: [
+    AuthService,
+    GoogleStrategy,
+    CreditorService,
     {
-      provide: 'CONFIGURATION(googleOAuth)',  // Provide the "googleOAuth" configuration
+      provide: 'CONFIGURATION(googleOAuth)', // Provide the "googleOAuth" configuration
       useValue: {
-          clientID: process.env.GOOGLE_CLIENT_ID,
-          clientSecret: process.env.GOOGLE_SECRET,
-          callbackURL: process.env.GOOGLE_CALLBACK_URL,
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_SECRET,
+        callbackURL: process.env.GOOGLE_CALLBACK_URL,
       },
     },
     {
@@ -39,7 +42,7 @@ import { NotificationModule } from '../notification/notification.module';
       },
     },
     JwtStrategy,
-    RefreshJwtStrategy
+    RefreshJwtStrategy,
   ],
   controllers: [AuthController],
 })

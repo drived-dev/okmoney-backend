@@ -1,12 +1,10 @@
 import { ResponseDto } from '@/types/response.dto';
 import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
   Logger,
-  Param,
   Patch,
   Post,
   Req,
@@ -21,7 +19,6 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MockAuthGuard } from '../auth/mockAuthGuard';
 import { AuthReqType } from '../auth/reqType';
 import { ZodPipe } from '../utils/zodPipe';
@@ -30,6 +27,7 @@ import {
   CreateCreditorDto,
   CreateCreditorSchema,
 } from './dto/create-creditor.dto';
+import { GetRolePackageDto } from './dto/get-creditor.dto';
 import {
   UpdateCreditorDto,
   UpdateCreditorSchema,
@@ -37,7 +35,6 @@ import {
 import { Creditor } from './entities/creditor.entity';
 
 // TODO: Create test for all endpoints
-// TODO: Add token required on header for all endpoints
 
 @ApiTags('Creditor')
 @Controller('creditor')
@@ -74,28 +71,20 @@ export class CreditorController {
     @Body(new ZodPipe(CreateCreditorSchema))
     createCreditorDto: CreateCreditorDto,
   ): Promise<Creditor> {
-    const creditor = await this.creditorService.createWithPhone(createCreditorDto);
+    const creditor =
+      await this.creditorService.createWithPhone(createCreditorDto);
     return creditor;
   }
 
-  // TODO: remove this on production
-  @UseGuards(JwtAuthGuard)
-  @Get()
-  @ApiOkResponse({ type: [Creditor] })
-  async findAll(): Promise<Creditor[]> {
-    const creditors = await this.creditorService.findAll();
-    return creditors;
-  }
-
-  // TODO: remove this on production
-  @Get(':id')
-  @ApiOkResponse({ type: Creditor })
-  async findOneTmp(@Param('id') id: string): Promise<Creditor> {
-    if (!id) {
-      throw new BadRequestException('Id is required');
-    }
-    const creditor = await this.creditorService.findOne(id);
-    return creditor;
+  @UseGuards(MockAuthGuard)
+  @ApiAuthorizationHeader()
+  @Get('/rolepackage')
+  @ApiOkResponse({
+    type: GetRolePackageDto,
+  })
+  async getRolePackage(@Req() req: AuthReqType): Promise<GetRolePackageDto> {
+    const result = await this.creditorService.getRolePackage(req.user?.id);
+    return result;
   }
 
   @UseGuards(MockAuthGuard)
@@ -103,7 +92,9 @@ export class CreditorController {
   @Get()
   @ApiOkResponse({ type: Creditor })
   async findOne(@Req() req: AuthReqType): Promise<Creditor> {
-    const creditor = await this.creditorService.findOne(req.user?.id);
+    const creditor = await this.creditorService.findOneWithProfileImage(
+      req.user?.id,
+    );
     return creditor;
   }
 
@@ -113,7 +104,7 @@ export class CreditorController {
   @ApiOkResponse({ type: ResponseDto })
   async update(
     @Req() req: AuthReqType,
-    @Body(new ZodPipe(UpdateCreditorSchema)) // apply pipe to only body
+    @Body(new ZodPipe(UpdateCreditorSchema))
     updateCreditorDto: UpdateCreditorDto,
   ) {
     const status = await this.creditorService.update(
