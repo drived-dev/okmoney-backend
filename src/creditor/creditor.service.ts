@@ -100,6 +100,22 @@ export class CreditorService {
     return querySnapshot.docs[0].ref;
   }
 
+  async checkFacebookId(facebookId: string) {
+    if (!facebookId) {
+      throw new Error('facebookId is required and cannot be empty');
+    }
+    const querySnapshot = await this.firebaseRepository.db
+      .collection(creditorCollection)
+      .where('facebookId', '==', facebookId)
+      .get();
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    return querySnapshot.docs[0].ref;
+  }
+
   generateProfileImagePath(id: string) {
     return 'profileImage/' + id;
   }

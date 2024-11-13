@@ -22,6 +22,7 @@ import { HttpService } from '@nestjs/axios';
 import * as qs from 'qs';
 import { firstValueFrom } from 'rxjs';
 import * as jwt from 'jsonwebtoken';
+import { FacebookAuthGuard } from './facebook.guard';
   
   @Controller('auth')
   export class AuthController {
@@ -58,12 +59,6 @@ import * as jwt from 'jsonwebtoken';
         console.log(user.id)
         const redirectUrl = `${process.env.FRONTEND_URL}/auth/google?token=${token.accessToken}&refreshToken=${token.refreshToken}&userId=${user.id}`;
         return res.redirect(302, redirectUrl);
-    }
-
-    @UseGuards(RefreshAuthGuard)
-    @Post("refresh")
-    refreshToken(@Req() req) {
-      return this.authService.refreshToken(req);
     }
 
     @UseGuards(LineAuthGuard)
@@ -113,6 +108,63 @@ import * as jwt from 'jsonwebtoken';
       } catch (error) {
         console.error('Error making POST request', error);
       }
+    }
+
+    @UseGuards(FacebookAuthGuard)
+    @Get('facebook/login')
+    facebookLogin() {}
+
+    @Get('facebook/callback')
+    async facebookCallback(
+      @Query('code') code: string,
+      @Res() res,
+    ) {
+      const url = 'https://graph.facebook.com/v12.0/oauth/access_token';
+    
+      const data = qs.stringify({
+        client_id: process.env.FACEBOOK_APP_ID,
+        client_secret: process.env.FACEBOOK_APP_SECRET,
+        redirect_uri: 'http://localhost:3000/api/auth/facebook/callback',
+        code: code,
+      });
+    
+      try {
+        // Exchange authorization code for access token
+        const response = await firstValueFrom(
+          this.httpService.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
+        );
+    
+        const accessToken = response.data.access_token;
+        const userInfoUrl = `https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`;
+        
+        // Get user info from Facebook
+        const userInfoResponse = await firstValueFrom(this.httpService.get(userInfoUrl));
+        const { id: facebookId, name, email } = userInfoResponse.data;
+        
+        // Authenticate or register the user
+        const user = await this.authService.validateFacebookUser({
+          email: "",
+          firstName: "",
+          lastName: "",
+          storeName: "",
+          rolePackage: "FREE",
+          facebookId: facebookId,
+        });
+    
+        const token = await this.authService.facebookLogin(user.id);
+        const redirectUrl = `${process.env.FRONTEND_URL}/auth/facebook?token=${token.accessToken}&refreshToken=${token.refreshToken}`;
+        return res.redirect(302, redirectUrl);
+    
+      } catch (error) {
+        console.error('Error in Facebook authentication', error);
+        return res.status(500).send('Facebook authentication failed');
+      }
+    }
+
+    @UseGuards(RefreshAuthGuard)
+    @Post("refresh")
+    refreshToken(@Req() req) {
+      return this.authService.refreshToken(req);
     }
 
     @Get("test?")

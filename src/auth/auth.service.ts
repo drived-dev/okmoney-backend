@@ -43,6 +43,20 @@ export class AuthService {
     return await this.creditorService.create(lineUser);
   }
 
+  async validateFacebookUser(facebookUser) {
+    if (!facebookUser.facebookId) {
+        throw new UnauthorizedException('Facebook user is required');
+    }
+    console.log("facebook user ", facebookUser.facebookId)
+    const user = await this.creditorService.checkFacebookId(facebookUser.facebookId)
+    if (user != null) {
+      console.log("facebook user login")
+      return user;
+    }
+    console.log("creating user with facebook account")
+    return await this.creditorService.create(facebookUser);
+  }
+
   async phoneLogin(phoneNumber: string, password: string){
     const user = await this.creditorService.checkPhonePass(phoneNumber, password)
     if (user != null){
@@ -76,6 +90,13 @@ export class AuthService {
   }
 
   async lineLogin(userId){
+    const payload: AuthJwtPayload = { type: "line", sub: userId };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
+    return { accessToken, refreshToken };
+  }
+
+  async facebookLogin(userId){
     const payload: AuthJwtPayload = { type: "line", sub: userId };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
