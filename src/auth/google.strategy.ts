@@ -10,10 +10,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
   constructor(
     @Inject('CONFIGURATION(googleOAuth)')
     private readonly googleOAuthConfig: {
-        clientID: string;
-        clientSecret: string;
-        callbackURL: string;
-      },
+      clientID: string;
+      clientSecret: string;
+      callbackURL: string;
+    },
     private authService: AuthService,
   ) {
     super({

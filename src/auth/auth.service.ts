@@ -17,7 +17,7 @@ export class AuthService {
 
   async validateGoogleUser(googleUser) {
     if (!googleUser.email) {
-        throw new UnauthorizedException('Google user email is required');
+      throw new UnauthorizedException('Google user email is required');
     }
     console.log("google user ", googleUser.googleId)
     const user = await this.creditorService.checkGoogleId(googleUser.googleId)
@@ -62,30 +62,33 @@ export class AuthService {
     if (user != null){
       const payload: AuthJwtPayload = { type: "phone", sub: user.id };
       const accessToken = this.jwtService.sign(payload);
-      const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
+      const refreshToken = this.jwtService.sign(
+        payload,
+        this.refreshTokenConfig,
+      );
 
       return {
         accessToken,
-        refreshToken
+        refreshToken,
       };
     }
-    return null
+    return null;
   }
 
-  googleLogin(req){
+  googleLogin(req) {
     if (!req.user) {
-        return 'No user from Google';
+      return 'No user from Google';
     }
 
-    const payload: AuthJwtPayload = { type: "google", sub: req.user.id };
-    console.log(req.user.email)
+    const payload: AuthJwtPayload = { type: 'google', sub: req.user.id };
+    console.log(req.user.email);
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
 
     return {
       user: req.user,
       accessToken,
-      refreshToken
+      refreshToken,
     };
   }
 

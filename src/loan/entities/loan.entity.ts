@@ -19,24 +19,35 @@ export enum LoanTermType {
   DAILY = 'DAILY',
 }
 
-export const LoanSchema = z.object({
-  id: z.string(),
-  loanNumber: z.string().optional(),
-  principal: z.number().min(0, 'Principal is required'),
-  loanStatus: z.nativeEnum(LoanStatus),
-  remainingBalance: z.number(),
-  totalBalance: z.number().min(0, 'Total balance is required'),
-  totalLoanTerm: z.number().int(),
-  loanTermType: z.nativeEnum(LoanTermType),
-  loanTermInterval: z.number().int(),
-  interestType: z.nativeEnum(InterestType),
-  interestRate: z.number(),
-  dueDate: z.coerce.date().transform((date) => new Date(date).getTime()),
-  tags: z.string().array(),
+export const LoanSchema = z
+  .object({
+    id: z.string(),
+    loanNumber: z.string().optional(),
+    principal: z.number().min(0, 'Principal is required'),
+    loanStatus: z.nativeEnum(LoanStatus),
+    remainingBalance: z.number(),
+    totalBalance: z.number().min(0, 'Total balance is required'),
+    totalLoanTerm: z.number().int(),
+    loanTermType: z.nativeEnum(LoanTermType),
+    loanTermInterval: z.number().int(),
+    interestType: z.nativeEnum(InterestType),
+    interestRate: z.number(),
+    dueDate: z.coerce.date().transform((date) => new Date(date).getTime()),
+    tags: z.string().array(),
 
-  debtorId: z.string(),
-  creditorId: z.string(),
-  guarantorId: z.string().optional(),
-});
+    debtorId: z.string(),
+    creditorId: z.string(),
+    guarantorId: z.string().optional(),
+
+    createdAt: z.coerce
+      .date()
+      .transform((date) => new Date(date).getTime())
+      .optional(),
+    updatedAt: z.coerce
+      .date()
+      .transform((date) => new Date(date).getTime())
+      .optional(),
+  })
+  .strict();
 
 export class Loan extends createZodDto(LoanSchema) {}

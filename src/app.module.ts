@@ -10,6 +10,7 @@ import { PaymentModule } from './payment/payment.module';
 import { CreditorModule } from './creditor/creditor.module';
 import { AuthModule } from './auth/auth.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { FirebaseModule } from './firebase/firebase.module';
 import { NotificationModule } from './notification/notification.module';
 
 @Module({
@@ -23,6 +24,7 @@ import { NotificationModule } from './notification/notification.module';
     PaymentModule,
     AuthModule,
     DashboardModule,
+    FirebaseModule,
     NotificationModule,
   ],
   controllers: [AppController],

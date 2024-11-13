@@ -1,7 +1,9 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { FirebaseRepository } from '../firebase/firebase.service';
@@ -13,10 +15,14 @@ import { NotificationService } from '../notification/notification.service';
 
 const creditorCollection = 'creditor';
 
-// TODO: add logger for cause errors
 @Injectable()
 export class CreditorService {
-  constructor(private firebaseRepository: FirebaseRepository, private notificationService: NotificationService) {}
+  private readonly logger = new Logger(CreditorService.name);
+
+  constructor(
+    private firebaseRepository: FirebaseRepository,
+    private notificationService: NotificationService,
+  ) {}
 
   async findById(
     id: string,
@@ -28,16 +34,16 @@ export class CreditorService {
       .doc(id);
     const doc = await docRef.get();
     if (!doc.exists) {
-      throw new NotFoundException(`Not Found: ${id} does not exist`, {
-        cause: `Not Found: ${id} does not exist`,
-      });
+      throw new NotFoundException(`Not Found: ${id} does not exist`);
     }
     return docRef;
   }
 
   async checkPhonePass(phone: string, password: string) {
     if (!phone || !password) {
-      throw new Error('PhoneNumber and Password is required and cannot be empty');
+      throw new BadRequestException(
+        'PhoneNumber and Password is required and cannot be empty',
+      );
     }
     const querySnapshot = await this.firebaseRepository.db
       .collection(creditorCollection)
@@ -54,7 +60,9 @@ export class CreditorService {
 
   async checkPhone(phone: string) {
     if (!phone) {
-      throw new Error('PhoneNumber is required and cannot be empty');
+      throw new BadRequestException(
+        'PhoneNumber is required and cannot be empty',
+      );
     }
     const querySnapshot = await this.firebaseRepository.db
       .collection(creditorCollection)
@@ -70,7 +78,7 @@ export class CreditorService {
 
   async checkGoogleId(googleId: string) {
     if (!googleId) {
-      throw new Error('googleId is required and cannot be empty');
+      throw new BadRequestException('googleId is required and cannot be empty');
     }
     const querySnapshot = await this.firebaseRepository.db
       .collection(creditorCollection)
@@ -129,9 +137,9 @@ export class CreditorService {
 
   async create(createCreditorDto: CreateCreditorDto): Promise<Creditor> {
     // TODO: handle email or something already exists?
-    if(createCreditorDto.phoneNumber){
-      const ref = await this.checkPhone(createCreditorDto.phoneNumber)
-      if(ref != null) throw new ForbiddenException("User already exist")
+    if (createCreditorDto.phoneNumber) {
+      const ref = await this.checkPhone(createCreditorDto.phoneNumber);
+      if (ref != null) throw new ForbiddenException('User already exist');
     }
 
     try {
@@ -139,6 +147,7 @@ export class CreditorService {
         .collection(creditorCollection)
         .add({
           ...createCreditorDto,
+          useNotification: true,
           createdAt: Date.now(),
           updatedAt: Date.now(),
         });
@@ -151,23 +160,28 @@ export class CreditorService {
     }
   }
 
-  async createWithPhone(createCreditorDto: CreateCreditorDto): Promise<Creditor> {
+  async createWithPhone(
+    createCreditorDto: CreateCreditorDto,
+  ): Promise<Creditor> {
     // TODO: handle email or something already exists?
-    if(createCreditorDto.phoneNumber){
-      const ref = await this.checkPhone(createCreditorDto.phoneNumber)
-      if(ref != null) throw new ForbiddenException("User already exist")
-    }
-    else throw new ForbiddenException("no phone number provided")
+    if (createCreditorDto.phoneNumber) {
+      const ref = await this.checkPhone(createCreditorDto.phoneNumber);
+      if (ref != null) throw new ForbiddenException('User already exist');
+    } else throw new ForbiddenException('no phone number provided');
 
-    const otp = generateOtp()
+    const otp = generateOtp();
 
     try {
-      this.notificationService.sendSms(createCreditorDto.phoneNumber, "This is the otp for logging in to OK Money: "+otp)
+      this.notificationService.sendSms(
+        createCreditorDto.phoneNumber,
+        'This is the otp for logging in to OK Money: ' + otp,
+      );
       const docRef = await this.firebaseRepository.db
         .collection(creditorCollection)
         .add({
           ...createCreditorDto,
           password: otp,
+          useNotification: true,
           createdAt: Date.now(),
           updatedAt: Date.now(),
         });
@@ -178,6 +192,11 @@ export class CreditorService {
         cause: err?.message,
       });
     }
+  }
+
+  async getRolePackage(creditorId: string) {
+    const creditor = await this.findOne(creditorId);
+    return { id: creditorId, rolePackage: creditor.rolePackage };
   }
 
   async findAll(): Promise<Creditor[]> {
@@ -191,28 +210,31 @@ export class CreditorService {
       }));
       return creditors as Creditor[];
     } catch (err: any) {
-      throw new InternalServerErrorException(err?.message, {
-        cause: err?.message,
-      });
+      this.logger.error(err);
+      throw new InternalServerErrorException(err?.message);
     }
   }
 
-  async findOne(id: string): Promise<Creditor> {
+  async findOne(creditorId: string): Promise<Creditor> {
     try {
-      const docRef = await this.findById(id);
+      const docRef = await this.findById(creditorId);
       const data = (await docRef.get()).data();
-      const profileImage = await this.getProfileImageById(docRef.id);
-      return { id: docRef.id, ...data, profileImage } as Creditor;
-    } catch (err: any) {
-      throw new InternalServerErrorException(err?.message, {
-        cause: err?.message,
-      });
+      return { id: docRef.id, ...data } as Creditor;
+    } catch (err) {
+      this.logger.error(err);
+      throw new NotFoundException('Creditor not found');
     }
   }
 
-  async update(id: string, updateCreditorDto: UpdateCreditorDto) {
+  async findOneWithProfileImage(creditorId: string): Promise<Creditor> {
+    const creditor = await this.findOne(creditorId);
+    const profileImage = await this.getProfileImageById(creditorId);
+    return { ...creditor, profileImage } as Creditor;
+  }
+
+  async update(creditorId: string, updateCreditorDto: UpdateCreditorDto) {
     try {
-      const docRef = await this.findById(id);
+      const docRef = await this.findById(creditorId);
 
       await docRef.update({
         ...updateCreditorDto,
@@ -226,22 +248,27 @@ export class CreditorService {
     }
   }
 
-  async getProfileImageById(id: string): Promise<string | undefined> {
-    return await this.firebaseRepository.getFileUrl(
-      this.generateProfileImagePath(id),
-    );
+  async getProfileImageById(creditorId: string): Promise<string | undefined> {
+    try {
+      return await this.firebaseRepository.getFileUrl(
+        this.generateProfileImagePath(creditorId),
+      );
+    } catch (err) {
+      this.logger.error(err);
+      return undefined;
+    }
   }
 
-  async removeProfileImageById(id: string) {
-    const filePath = this.generateProfileImagePath(id);
+  async removeProfileImageById(creditorId: string) {
+    const filePath = this.generateProfileImagePath(creditorId);
     await this.firebaseRepository.safeRemoveFile(filePath);
   }
 
-  async remove(id: string) {
+  async remove(creditorId: string) {
     try {
-      const docRef = await this.findById(id);
+      const docRef = await this.findById(creditorId);
 
-      await this.removeProfileImageById(id);
+      await this.removeProfileImageById(creditorId);
 
       await docRef.delete();
       return { message: 'Creditor deleted successfully' };
