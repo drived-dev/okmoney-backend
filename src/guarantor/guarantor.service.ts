@@ -10,7 +10,7 @@ import { CreateGuarantorDto } from './dto/create-guarantor.dto';
 import { UpdateGuarantorDto } from './dto/update-guarantor.dto';
 import { Guarantor, GuarantorSchema } from './entities/guarantor.entity';
 
-const guarantorCollection = 'guarantor';
+export const GUARANTOR_COLLECTION = 'guarantor';
 
 @Injectable()
 export class GuarantorService {
@@ -19,7 +19,7 @@ export class GuarantorService {
   async create(createGuarantorDto: CreateGuarantorDto): Promise<Guarantor> {
     try {
       const docRef = await this.firebaseRepository.db
-        .collection(guarantorCollection)
+        .collection(GUARANTOR_COLLECTION)
         .add({
           ...createGuarantorDto,
           createdAt: Date.now(),
@@ -40,7 +40,7 @@ export class GuarantorService {
     FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>
   > {
     const docRef = this.firebaseRepository.db
-      .collection(guarantorCollection)
+      .collection(GUARANTOR_COLLECTION)
       .doc(id);
     const doc = await docRef.get();
     if (!doc.exists) {
@@ -79,7 +79,7 @@ export class GuarantorService {
         // Fetch guarantor details
         if (!loanData.guarantorId) return;
         const guarantorRef = await this.firebaseRepository.db
-          .collection(guarantorCollection) // Collection where guarantors are stored
+          .collection(GUARANTOR_COLLECTION) // Collection where guarantors are stored
           .doc(loanData?.guarantorId)
           .get();
 
