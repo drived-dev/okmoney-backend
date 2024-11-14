@@ -43,6 +43,7 @@ export class GuarantorController {
     private readonly loanService: LoanService,
   ) {}
 
+  // TODO: remove this route on production
   @UseGuards(MockAuthGuard)
   @ApiAuthorizationHeader()
   @ApiOperation({
@@ -63,6 +64,7 @@ export class GuarantorController {
     return guarator;
   }
 
+  // TODO: handle roll back for this function
   @UseGuards(MockAuthGuard)
   @ApiAuthorizationHeader()
   @ApiCreatedResponse({
