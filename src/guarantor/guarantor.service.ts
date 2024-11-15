@@ -52,7 +52,7 @@ export class GuarantorService {
     return docRef;
   }
 
-  async findLoanForGuarantor(
+  async findAllLoanByCreditorId(
     creditorId: string,
   ): Promise<
     FirebaseFirestore.QuerySnapshot<
@@ -68,39 +68,32 @@ export class GuarantorService {
     return loanRef;
   }
 
+  async findAllGuarantorIdByCreditorId(creditorId: string): Promise<string[]> {
+    const loanRef = await this.findAllLoanByCreditorId(creditorId);
+    const guarantorIds = loanRef.docs.map((loanDoc) => {
+      const loanData = LoanSchema.parse({
+        id: loanDoc.id,
+        ...loanDoc.data(),
+      }) as Loan;
+      return loanData.guarantorId;
+    });
+    return guarantorIds.filter((guarantorId) => guarantorId) as string[];
+  }
+
+  // TODO: create test for this endpoint
   async findAll(creditorId: string): Promise<Guarantor[]> {
-    const loanRef = await this.findLoanForGuarantor(creditorId);
-    const guarantorDetails = await Promise.all(
-      loanRef.docs.map(async (loanDoc) => {
-        const loanData = LoanSchema.parse({
-          id: loanDoc.id,
-          ...loanDoc.data(),
-        }) as Loan;
-
-        // Fetch guarantor details
-        if (!loanData.guarantorId) return;
-        const guarantorRef = await this.firebaseRepository.db
-          .collection(GUARANTOR_COLLECTION) // Collection where guarantors are stored
-          .doc(loanData?.guarantorId)
-          .get();
-
-        if (guarantorRef.exists) {
-          const guarantorData = GuarantorSchema.parse({
-            id: guarantorRef.id,
-            ...guarantorRef.data(),
-          });
-          return guarantorData; // Attach guarantor details to loan
-        }
-        return;
+    const guarantorIds = await this.findAllGuarantorIdByCreditorId(creditorId);
+    const guarantors = await Promise.all(
+      guarantorIds.map(async (guarantorId) => {
+        return await this.findOne(guarantorId);
       }),
     );
-
-    return guarantorDetails.filter((guarantor) => guarantor) as Guarantor[];
+    return guarantors;
   }
 
   async findOne(id: string): Promise<Guarantor> {
+    const docRef = await this.findById(id);
     try {
-      const docRef = await this.findById(id);
       const data = (await docRef.get()).data();
       return GuarantorSchema.parse({ id: docRef.id, ...data }) as Guarantor;
     } catch (err: any) {
@@ -114,9 +107,8 @@ export class GuarantorService {
     id: string,
     updateGuarantorDto: UpdateGuarantorDto,
   ): Promise<ResponseDto> {
+    const docRef = await this.findById(id);
     try {
-      const docRef = await this.findById(id);
-
       await docRef.update({
         ...updateGuarantorDto,
         updatedAt: Date.now(),
@@ -130,9 +122,8 @@ export class GuarantorService {
   }
 
   async remove(id: string): Promise<ResponseDto> {
+    const docRef = await this.findById(id);
     try {
-      const docRef = await this.findById(id);
-
       await docRef.delete();
       return { success: true, message: 'Guarantor deleted successfully' };
     } catch (err: any) {
