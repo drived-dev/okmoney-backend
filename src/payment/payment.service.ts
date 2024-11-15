@@ -1,3 +1,8 @@
+import { DebtorService } from '@/debtor/debtor.service';
+import { FirebaseRepository } from '@/firebase/firebase.service';
+import { Loan } from '@/loan/entities/loan.entity';
+import { LoanService } from '@/loan/loan.service';
+import { ResponseDto } from '@/types/response.dto';
 import {
   forwardRef,
   Inject,
@@ -7,15 +12,12 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { FirebaseRepository } from '../firebase/firebase.service';
 import {
   CreatePaymentDto,
   CreatePaymentResponseDto,
 } from './dto/create-payment.dto';
-import { Payment, PaymentSchema } from './entities/payment.entity';
-import { LoanService } from '../loan/loan.service';
-import { DebtorService } from '@/debtor/debtor.service';
 import { GetPaymentDto } from './dto/get-payment.dto';
+import { Payment, PaymentSchema } from './entities/payment.entity';
 
 export const paymentCollection = 'payment';
 
@@ -170,10 +172,13 @@ export class PaymentService {
     }
   }
 
-  async remove(id: string, creditorId: string) {
+  async remove(
+    id: string,
+    creditorId: string,
+  ): Promise<ResponseDto & { loan?: Loan }> {
     const docRef = await this.findById(id);
     if (!docRef) {
-      return { message: `Payment not found: ${id}` };
+      return { success: false, message: `Payment not found: ${id}` };
     }
     const data = PaymentSchema.parse({
       id: docRef.id,
@@ -194,6 +199,6 @@ export class PaymentService {
     await docRef.delete();
 
     const { loan } = await this.loanService.payLoan(data.loanId, -data.amount);
-    return { message: 'Payment deleted successfully', loan };
+    return { success: true, message: 'Payment deleted successfully', loan };
   }
 }

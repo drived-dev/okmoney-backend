@@ -12,6 +12,7 @@ import { UpdateCreditorDto } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
 import { generateOtp } from '@/utils/generateOtp';
 import { NotificationService } from '../notification/notification.service';
+import { ResponseDto } from '@/types/response.dto';
 
 const creditorCollection = 'creditor';
 
@@ -232,7 +233,10 @@ export class CreditorService {
     return { ...creditor, profileImage } as Creditor;
   }
 
-  async update(creditorId: string, updateCreditorDto: UpdateCreditorDto) {
+  async update(
+    creditorId: string,
+    updateCreditorDto: UpdateCreditorDto,
+  ): Promise<ResponseDto> {
     try {
       const docRef = await this.findById(creditorId);
 
@@ -240,7 +244,7 @@ export class CreditorService {
         ...updateCreditorDto,
         updatedAt: Date.now(),
       });
-      return { message: 'Creditor updated successfully' };
+      return { success: true, message: 'Creditor updated successfully' };
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,

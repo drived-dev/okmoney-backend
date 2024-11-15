@@ -9,6 +9,7 @@ import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreateGuarantorDto } from './dto/create-guarantor.dto';
 import { UpdateGuarantorDto } from './dto/update-guarantor.dto';
 import { Guarantor, GuarantorSchema } from './entities/guarantor.entity';
+import { ResponseDto } from '@/types/response.dto';
 
 export const GUARANTOR_COLLECTION = 'guarantor';
 
@@ -112,7 +113,7 @@ export class GuarantorService {
   async update(
     id: string,
     updateGuarantorDto: UpdateGuarantorDto,
-  ): Promise<{ message: string }> {
+  ): Promise<ResponseDto> {
     try {
       const docRef = await this.findById(id);
 
@@ -120,7 +121,7 @@ export class GuarantorService {
         ...updateGuarantorDto,
         updatedAt: Date.now(),
       });
-      return { message: 'Guarantor updated successfully' };
+      return { success: true, message: 'Guarantor updated successfully' };
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
@@ -128,12 +129,12 @@ export class GuarantorService {
     }
   }
 
-  async remove(id: string): Promise<{ message: string }> {
+  async remove(id: string): Promise<ResponseDto> {
     try {
       const docRef = await this.findById(id);
 
       await docRef.delete();
-      return { message: 'Guarantor deleted successfully' };
+      return { success: true, message: 'Guarantor deleted successfully' };
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,

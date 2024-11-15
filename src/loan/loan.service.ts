@@ -10,6 +10,7 @@ import { CreateLoanDto } from './dto/create-loan.dto';
 import { Loan, LoanSchema } from './entities/loan.entity';
 import { UpdateLoanDto } from './dto/update-loan.dto';
 import { FieldValue } from 'firebase-admin/firestore';
+import { ResponseDto } from '@/types/response.dto';
 
 export const loanCollection = 'loan';
 
@@ -173,7 +174,7 @@ export class LoanService {
   async update(
     loanId: string,
     updateLoanDto: UpdateLoanDto | { guarantorId: FieldValue },
-  ): Promise<{ message: string }> {
+  ): Promise<ResponseDto> {
     try {
       const docRef = await this.findById(loanId);
 
@@ -181,7 +182,7 @@ export class LoanService {
         ...updateLoanDto,
         updatedAt: Date.now(),
       });
-      return { message: 'Updated successfully' };
+      return { success: true, message: 'Updated successfully' };
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
