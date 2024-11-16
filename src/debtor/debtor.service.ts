@@ -20,6 +20,7 @@ import {
 import { UpdateDebtorDto } from './dto/update-debtor.dto';
 import { Debtor, DebtorSchema } from './entities/debtor.entity';
 import { GetDebtorDto } from './dto/get-debtor.dto';
+import { ResponseDto } from '@/types/response.dto';
 
 export const debtorCollection = 'debtor';
 
@@ -229,14 +230,14 @@ export class DebtorService {
   async update(
     id: string,
     updateDebtorDto: UpdateDebtorDto,
-  ): Promise<{ message: string }> {
+  ): Promise<ResponseDto> {
     try {
       const docRef = await this.findById(id);
       await docRef.update({
         ...updateDebtorDto,
         updatedAt: Date.now(),
       });
-      return { message: 'Updated successfully' };
+      return { success: true, message: 'Updated successfully' };
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
@@ -244,12 +245,12 @@ export class DebtorService {
     }
   }
 
-  async remove(id: string): Promise<{ message: string }> {
+  async remove(id: string): Promise<ResponseDto> {
     try {
       const docRef = await this.findById(id);
       await docRef.delete();
 
-      return { message: 'Deleted successfully' };
+      return { success: true, message: 'Deleted successfully' };
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
         cause: err?.message,
