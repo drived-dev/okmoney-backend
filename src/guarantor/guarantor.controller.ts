@@ -1,4 +1,3 @@
-import { MockAuthGuard } from '@/auth/mockAuthGuard';
 import { AuthReqType } from '@/auth/reqType';
 import { Loan } from '@/loan/entities/loan.entity';
 import { LoanService } from '@/loan/loan.service';
@@ -32,6 +31,7 @@ import { UpdateGuarantorDto } from './dto/update-guarantor.dto';
 import { Guarantor } from './entities/guarantor.entity';
 import { GuarantorService } from './guarantor.service';
 import { FieldValue } from 'firebase-admin/firestore';
+import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 
 @ApiTags('Guarantor')
 @Controller('guarantor')
@@ -44,7 +44,7 @@ export class GuarantorController {
   ) {}
 
   // TODO: remove this route on production
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @ApiOperation({
     description: 'Create a guarantor (this should not be used)',
@@ -65,7 +65,7 @@ export class GuarantorController {
   }
 
   // TODO: handle roll back for this function
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @ApiCreatedResponse({
     type: Guarantor,
@@ -86,7 +86,7 @@ export class GuarantorController {
     return guarator;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Get()
   @ApiOkResponse({
@@ -99,7 +99,7 @@ export class GuarantorController {
     return guarantors;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Get(':id')
   @ApiOkResponse({
@@ -120,7 +120,7 @@ export class GuarantorController {
     return guarantor;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Patch(':id')
   @ApiOkResponse({
@@ -142,7 +142,7 @@ export class GuarantorController {
     return status;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Delete(':id')
   @ApiOkResponse({

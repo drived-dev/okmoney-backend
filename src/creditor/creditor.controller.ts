@@ -19,7 +19,6 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { MockAuthGuard } from '../auth/mockAuthGuard';
 import { AuthReqType } from '../auth/reqType';
 import { ZodPipe } from '../utils/zodPipe';
 import { CreditorService } from './creditor.service';
@@ -33,6 +32,7 @@ import {
   UpdateCreditorSchema,
 } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
+import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 
 // TODO: Create test for all endpoints
 
@@ -43,7 +43,7 @@ export class CreditorController {
 
   constructor(private readonly creditorService: CreditorService) {}
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Post('profileimage')
   @UseInterceptors(FileInterceptor('file'))
@@ -76,7 +76,7 @@ export class CreditorController {
     return creditor;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Get('/rolepackage')
   @ApiOkResponse({
@@ -87,7 +87,7 @@ export class CreditorController {
     return result;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Get()
   @ApiOkResponse({ type: Creditor })
@@ -98,7 +98,7 @@ export class CreditorController {
     return creditor;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Patch()
   @ApiOkResponse({ type: ResponseDto })
@@ -114,7 +114,7 @@ export class CreditorController {
     return status;
   }
 
-  // @UseGuards(MockAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   // @ApiAuthorizationHeader()
   // @Delete()
   // @ApiOkResponse({ type: ResponseDto })

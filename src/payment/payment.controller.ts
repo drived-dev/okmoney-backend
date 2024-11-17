@@ -25,7 +25,6 @@ import {
   ApiTags,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { MockAuthGuard } from '../auth/mockAuthGuard';
 import { AuthReqType } from '../auth/reqType';
 import { LoanService } from '../loan/loan.service';
 import {
@@ -35,6 +34,7 @@ import {
 } from './dto/create-payment.dto';
 import { GetPaymentDto } from './dto/get-payment.dto';
 import { PaymentService } from './payment.service';
+import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 
 @ApiTags('Payment')
 @Controller('payment')
@@ -46,7 +46,7 @@ export class PaymentController {
     private readonly loanService: LoanService,
   ) {}
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Post('/create')
   @UseInterceptors(FileInterceptor('file'))
@@ -114,7 +114,7 @@ export class PaymentController {
     return payment;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Get('history')
   @ApiOkResponse({
@@ -126,7 +126,7 @@ export class PaymentController {
     return payments;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Get('history/debtor/:id')
   @ApiOkResponse({
@@ -144,7 +144,7 @@ export class PaymentController {
     return payment;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Delete(':id')
   @ApiOkResponse({
