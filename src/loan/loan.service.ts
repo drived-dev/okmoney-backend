@@ -246,23 +246,23 @@ export class LoanService {
         (daysToDueDate < 0 && loanStatus !== "CLOSED");       // overdue
   
       if (shouldSendReminder) {
-        const guarantorId = loanData.guarantorId;
-        if (!guarantorId) {
-          this.logger.warn(`Guarantor ID for loan with id ${loanId} is missing`);
-          return { message: `Guarantor ID for loan with id ${loanId} is missing`, success: false };
+        const debtorId = loanData.debtorId;
+        if (!debtorId) {
+          this.logger.warn(`Debtor ID for loan with id ${loanId} is missing`);
+          return { message: `Debtor ID for loan with id ${loanId} is missing`, success: false };
         }
   
-        const guarantorDoc = await this.firebaseRepository.db
-          .collection("guarantor")
-          .doc(guarantorId)
+        const debtorDoc = await this.firebaseRepository.db
+          .collection("debtor")
+          .doc(debtorId)
           .get();
   
-        if (!guarantorDoc.exists) {
-          this.logger.error(`Guarantor with id ${guarantorId} does not exist`);
-          return { message: `Guarantor with id ${guarantorId} does not exist`, success: false };
+        if (!debtorDoc.exists) {
+          this.logger.error(`Debtor with id ${debtorId} does not exist`);
+          return { message: `Debtor with id ${debtorId} does not exist`, success: false };
         }
   
-        const phoneNumber = guarantorDoc.data()?.phoneNumber;
+        const phoneNumber = debtorDoc.data()?.phoneNumber;
         if (phoneNumber) {
           // Determine the message based on the days to due date
           let message = '';
@@ -280,8 +280,8 @@ export class LoanService {
           await this.notificationService.sendSms(phoneNumber, message);
           return { message: "SMS sent successfully", success: true };
         } else {
-          this.logger.warn(`Phone number for guarantor with id ${guarantorId} is missing`);
-          return { message: `Phone number for guarantor with id ${guarantorId} is missing`, success: false };
+          this.logger.warn(`Phone number for debtor with id ${debtorId} is missing`);
+          return { message: `Phone number for debtor with id ${debtorId} is missing`, success: false };
         }
       }
     } catch (err: any) {
