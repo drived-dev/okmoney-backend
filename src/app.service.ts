@@ -11,7 +11,7 @@ export class AppService {
     return 'Hello World!';
   }
 
-  async testCron(){
+  async testCron() {
     console.log("Test cron");
 
     const now = new Date();
@@ -21,10 +21,10 @@ export class AppService {
       now.getTime(), // on due date
     ];
 
-    // Query for loans due today, 1 day before, and 2 days before
+    // Query for loans with a due date within the next 2 days
     const querySnapshot = await this.firebaseRepository.db
       .collection("loan")
-      .where('dueDate', '<=', dueDates[0])
+      .where('dueDate', '<=', dueDates[0]) // Get loans with due dates in the next 2 days or earlier
       .get();
 
     if (querySnapshot.empty) {
@@ -33,39 +33,29 @@ export class AppService {
     }
 
     const notifications = await Promise.all(
-      querySnapshot.docs.map(async doc => {
+      querySnapshot.docs.map(async (doc) => {
         const loanData = doc.data();
-        const dueDate = loanData.dueDate;
-        const loanStatus = loanData.loanStatus;
+        const { dueDate, loanStatus, debtorId } = loanData;
 
-        // Check if we are within the specified notification windows
-        if (
-          (dueDate === dueDates[0] && loanStatus !== "CLOSED") || // 2 days before
-          (dueDate === dueDates[1] && loanStatus !== "CLOSED") || // 1 day before
-          (dueDate === dueDates[2] && loanStatus !== "CLOSED") || // on due date
-          (dueDate < now.getTime() && loanStatus !== "CLOSED")    // overdue
-        ) {
-          const guarantorId = loanData.guarantorId;
-          if (!guarantorId) return null;
+        // Skip if loan is closed or debtorId is missing
+        if (loanStatus === "CLOSED" || !debtorId) return null;
 
-          const guarantorDoc = await this.firebaseRepository.db
-            .collection("guarantor")
-            .doc(guarantorId)
+        // Check if the loan is within the notification windows (2 days before, 1 day before, on due date, or overdue)
+        if (this.shouldSendReminder(dueDate, now, dueDates)) {
+          const debtorDoc = await this.firebaseRepository.db
+            .collection("debtor")
+            .doc(debtorId)
             .get();
 
-          if (!guarantorDoc.exists) return null;
+          if (!debtorDoc.exists) return null;
 
-          const phoneNumber = guarantorDoc.data()?.phoneNumber ?? null;
+          const phoneNumber = debtorDoc.data()?.phoneNumber ?? null;
           if (phoneNumber) {
-            if( (dueDate === dueDates[0] && loanStatus !== "CLOSED") || // 2 days before
-                (dueDate === dueDates[1] && loanStatus !== "CLOSED")  )
-                await this.notificationService.sendSms(phoneNumber, `Reminder: Loan will be dued on ${new Date(dueDate).toDateString()}.`);
-            else if(dueDate === dueDates[2] && loanStatus !== "CLOSED") await this.notificationService.sendSms(phoneNumber, `Reminder: Loan is due today ${new Date(dueDate).toDateString()}.`);
-            if(dueDate < now.getTime() && loanStatus !== "CLOSED") await this.notificationService.sendSms(phoneNumber, `Reminder: Loan has been due on ${new Date(dueDate).toDateString()}.`);
+            // Send SMS notifications based on the due date
+            await this.sendReminderSms(phoneNumber, dueDate, loanStatus, now);
             return phoneNumber;
           }
         }
-
         return null;
       })
     );
@@ -74,8 +64,37 @@ export class AppService {
     return notifications.filter(phone => phone != null);
   }
 
-  // @Cron('45 * * * * *')
-  // handleCron() {
-  //   console.log('Called when the current second is 45');
+  private shouldSendReminder(dueDate: number, now: Date, dueDates: number[]): boolean {
+    return (
+      (dueDate === dueDates[0] && dueDate !== now.getTime()) || // 2 days before
+      (dueDate === dueDates[1] && dueDate !== now.getTime()) || // 1 day before
+      (dueDate === dueDates[2] && dueDate !== now.getTime()) || // on due date
+      (dueDate < now.getTime()) // overdue
+    );
+  }
+
+  private async sendReminderSms(phoneNumber: string, dueDate: number, loanStatus: string, now: Date) {
+    let message = '';
+    if (loanStatus !== "CLOSED") {
+      if (dueDate === now.getTime()) {
+        message = `Reminder: Loan is due today ${new Date(dueDate).toDateString()}.`;
+      } else if (dueDate < now.getTime()) {
+        message = `Reminder: Loan has been overdue since ${new Date(dueDate).toDateString()}.`;
+      } else {
+        const daysToDueDate = Math.ceil((dueDate - now.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysToDueDate === 2) {
+          message = `Reminder: Loan will be due in 2 days on ${new Date(dueDate).toDateString()}.`;
+        } else if (daysToDueDate === 1) {
+          message = `Reminder: Loan will be due tomorrow (${new Date(dueDate).toDateString()}).`;
+        }
+      }
+      await this.notificationService.sendSms(phoneNumber, message);
+    }
+  }
+
+  // @Cron('0 0 * * *') // Cron job to run every day at midnight (adjust as needed)
+  // async handleCron() {
+  //   console.log('Cron job running at midnight to send loan reminders');
+  //   await this.testCron();
   // }
 }

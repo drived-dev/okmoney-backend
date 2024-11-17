@@ -33,6 +33,7 @@ import {
 } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { LoanService } from '@/loan/loan.service';
 
 // TODO: Create test for all endpoints
 
@@ -41,7 +42,7 @@ import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 export class CreditorController {
   private readonly logger = new Logger(CreditorController.name);
 
-  constructor(private readonly creditorService: CreditorService) {}
+  constructor(private readonly creditorService: CreditorService, private loanService: LoanService) {}
 
   @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
@@ -85,6 +86,23 @@ export class CreditorController {
   async getRolePackage(@Req() req: AuthReqType): Promise<GetRolePackageDto> {
     const result = await this.creditorService.getRolePackage(req.user?.id);
     return result;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiAuthorizationHeader()
+  @Post('/sms')
+  @ApiCreatedResponse({
+    type: ResponseDto,
+    description: 'The SMS reminder has been successfully sent.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+  })
+  async sendReminderSms(
+    @Body("loanId") loanId: string,
+  ): Promise<ResponseDto> {
+    const result = await this.loanService.sendReminderSmsByLoanId(loanId);
+    return result
   }
 
   @UseGuards(JwtAuthGuard)
