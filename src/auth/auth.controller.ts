@@ -6,6 +6,7 @@ import {
   Query,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -18,17 +19,42 @@ import { firstValueFrom } from 'rxjs';
 import * as jwt from 'jsonwebtoken';
 import { FacebookAuthGuard } from './facebook.guard';
 import { RefreshAuthGuard } from './refresh-auth.guard';
+import { RolePackage } from '@/creditor/entities/rolePackage.entity';
+import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService, private readonly httpService: HttpService) {}
 
-  @Post('phone/login')
-  async login(
-    @Body('phone') phone: string,
+  @Post('phone/register')
+  async register(
+    @Body('phoneNumber') phoneNumber: string,
     @Body('password') password: string,
   ) {
-    const token = await this.authService.phoneLogin(phone, password);
+    const token = await this.authService.phoneRegister({
+      email: "",
+      firstName: "",
+      lastName: "",
+      storeName: "",
+      rolePackage: RolePackage.FREE,
+      phoneNumber: phoneNumber,
+      password: password
+    });
+    console.log(token);
+    if (token)
+      return {
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+      };
+    return 'Invalid PhoneNumber or Password or user might already exist';
+  }
+
+  @Post('phone/login')
+  async login(
+    @Body('phoneNumber') phoneNumber: string,
+    @Body('password') password: string,
+  ) {
+    const token = await this.authService.phoneLogin(phoneNumber, password);
     console.log(token);
     if (token)
       return {
@@ -88,14 +114,14 @@ export class AuthController {
           this.httpService.post(url, data, { headers })
         );
         console.log(response.data);
-        const lineId = jwt.decode(response.data.id_token)?.sub;
+        const lineId = jwt.decode(response.data.id_token)?.sub?.toString();
         
         const user = await this.authService.validateLineUser({
           email: "",
           firstName: "",
           lastName: "",
           storeName: "",
-          rolePackage: "FREE",
+          rolePackage: RolePackage.FREE,
           lineId: lineId,
         });
 
@@ -103,7 +129,6 @@ export class AuthController {
         console.log('Generated tokens:', token);
         const redirectUrl = `${process.env.FRONTEND_URL}/auth/line?token=${token.accessToken}&refreshToken=${token.refreshToken}`;
         return res.redirect(302, redirectUrl);
-
       } catch (error) {
         console.error('Error making POST request', error);
       }
@@ -146,7 +171,7 @@ export class AuthController {
           firstName: "",
           lastName: "",
           storeName: "",
-          rolePackage: "FREE",
+          rolePackage: RolePackage.FREE,
           facebookId: facebookId,
         });
     

@@ -15,9 +15,12 @@ export class AuthService {
     private refreshTokenConfig: ConfigType<typeof refreshJwtConfig>,
   ) {}
 
-  async validateGoogleUser(googleUser) {
+  async validateGoogleUser(googleUser: CreateCreditorDto) {
     if (!googleUser.email) {
       throw new UnauthorizedException('Google user email is required');
+    }
+    if (!googleUser.googleId) {
+      throw new UnauthorizedException('Google user id is required');
     }
     console.log("google user ", googleUser.googleId)
     const user = await this.creditorService.checkGoogleId(googleUser.googleId)
@@ -29,7 +32,7 @@ export class AuthService {
     return await this.creditorService.create(googleUser);
   }
 
-  async validateLineUser(lineUser) {
+  async validateLineUser(lineUser: CreateCreditorDto) {
     if (!lineUser.lineId) {
         throw new UnauthorizedException('Line user is required');
     }
@@ -43,7 +46,7 @@ export class AuthService {
     return await this.creditorService.create(lineUser);
   }
 
-  async validateFacebookUser(facebookUser) {
+  async validateFacebookUser(facebookUser: CreateCreditorDto) {
     if (!facebookUser.facebookId) {
         throw new UnauthorizedException('Facebook user is required');
     }
@@ -55,6 +58,28 @@ export class AuthService {
     }
     console.log("creating user with facebook account")
     return await this.creditorService.create(facebookUser);
+  }
+
+  async phoneRegister(phoneUser: CreateCreditorDto){
+    if(phoneUser.phoneNumber){
+      const user = await this.creditorService.checkPhone(phoneUser.phoneNumber)
+      if (user == null){
+        const user2 = await this.creditorService.create(phoneUser);
+
+        const payload: AuthJwtPayload = { type: "phone", sub: user2.id };
+        const accessToken = this.jwtService.sign(payload);
+        const refreshToken = this.jwtService.sign(
+          payload,
+          this.refreshTokenConfig,
+        );
+
+        return {
+          accessToken,
+          refreshToken,
+        };
+      }
+    }
+    return null;
   }
 
   async phoneLogin(phoneNumber: string, password: string){
