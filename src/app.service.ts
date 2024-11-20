@@ -35,10 +35,19 @@ export class AppService {
     const notifications = await Promise.all(
       querySnapshot.docs.map(async (doc) => {
         const loanData = doc.data();
-        const { dueDate, loanStatus, debtorId } = loanData;
+        const { dueDate, loanStatus, debtorId, creditorId } = loanData;
 
         // Skip if loan is closed or debtorId is missing
-        if (loanStatus === "CLOSED" || !debtorId) return null;
+        if (loanStatus === "CLOSED" || !debtorId || !creditorId) return null;
+
+        const creditorDoc = await this.firebaseRepository.db
+            .collection("creditor")
+            .doc(creditorId)
+            .get();
+
+        if (!creditorDoc.exists) return null;
+        const useNotification = creditorDoc.data()?.useNotification ?? null;
+        if (!useNotification) return null;
 
         // Check if the loan is within the notification windows (2 days before, 1 day before, on due date, or overdue)
         if (this.shouldSendReminder(dueDate, now, dueDates)) {
@@ -52,7 +61,7 @@ export class AppService {
           const phoneNumber = debtorDoc.data()?.phoneNumber ?? null;
           if (phoneNumber) {
             // Send SMS notifications based on the due date
-            await this.sendReminderSms(phoneNumber, dueDate, loanStatus, now);
+            await this.sendReminderSms(phoneNumber, dueDate, loanStatus, now, creditorDoc.id);
             return phoneNumber;
           }
         }
@@ -73,7 +82,7 @@ export class AppService {
     );
   }
 
-  private async sendReminderSms(phoneNumber: string, dueDate: number, loanStatus: string, now: Date) {
+  private async sendReminderSms(phoneNumber: string, dueDate: number, loanStatus: string, now: Date, creditorID: string) {
     let message = '';
     if (loanStatus !== "CLOSED") {
       if (dueDate === now.getTime()) {
@@ -89,6 +98,7 @@ export class AppService {
         }
       }
       await this.notificationService.sendSms(phoneNumber, message);
+      console.log(`Sending SMS to ${phoneNumber} using ${creditorID} credit`)
     }
   }
 
