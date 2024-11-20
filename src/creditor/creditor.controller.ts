@@ -60,22 +60,22 @@ export class CreditorController {
     return { message: 'Success' };
   }
 
-  @Post()
-  @ApiCreatedResponse({
-    type: Creditor,
-    description: 'The record has been successfully created.',
-  })
-  @ApiBadRequestResponse({
-    description: 'Bad Request',
-  })
-  async create(
-    @Body(new ZodPipe(CreateCreditorSchema))
-    createCreditorDto: CreateCreditorDto,
-  ): Promise<Creditor> {
-    const creditor =
-      await this.creditorService.createWithPhone(createCreditorDto);
-    return creditor;
-  }
+  // @Post()
+  // @ApiCreatedResponse({
+  //   type: Creditor,
+  //   description: 'The record has been successfully created.',
+  // })
+  // @ApiBadRequestResponse({
+  //   description: 'Bad Request',
+  // })
+  // async create(
+  //   @Body(new ZodPipe(CreateCreditorSchema))
+  //   createCreditorDto: CreateCreditorDto,
+  // ): Promise<Creditor> {
+  //   const creditor =
+  //     await this.creditorService.createWithPhone(createCreditorDto);
+  //   return creditor;
+  // }
 
   @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()

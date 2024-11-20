@@ -163,35 +163,53 @@ export class CreditorService {
 
   async createWithPhone(
     createCreditorDto: CreateCreditorDto,
-  ): Promise<Creditor> {
-    // TODO: handle email or something already exists?
-    if (createCreditorDto.phoneNumber) {
-      const ref = await this.checkPhone(createCreditorDto.phoneNumber);
-      if (ref != null) throw new ForbiddenException('User already exist');
-    } else throw new ForbiddenException('no phone number provided');
-
-    const otp = generateOtp();
-
+  ){
+    if (!createCreditorDto.phoneNumber) {
+      throw new ForbiddenException('No phone number provided');
+    }
+  
+    const otp = generateOtp(); // Generate OTP beforehand for reuse.
+  
     try {
+      const ref = await this.checkPhone(createCreditorDto.phoneNumber);
+  
+      if (ref) {
+        // Existing user case.
+        console.log('Generating new OTP for existing user');
+        // Update the password field for the existing user.
+        await this.firebaseRepository.db
+          .collection(creditorCollection)
+          .doc(ref.id)
+          .update({
+            password: otp,
+            updatedAt: Date.now(),
+          });
+      } else {
+        // New user case.
+        console.log('Generating new OTP for new user');
+        const docRef = await this.firebaseRepository.db
+          .collection(creditorCollection)
+          .add({
+            ...createCreditorDto,
+            password: otp,
+            useNotification: true,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          });
+  
+        const data = (await docRef.get()).data();
+        return { id: docRef.id, ...data } as Creditor;
+      }
+  
+      // Send OTP notification.
       this.notificationService.sendSms(
         createCreditorDto.phoneNumber,
-        'This is the otp for logging in to OK Money: ' + otp,
+        'This is the OTP for logging in to OK Money: ' + otp,
       );
-      const docRef = await this.firebaseRepository.db
-        .collection(creditorCollection)
-        .add({
-          ...createCreditorDto,
-          password: otp,
-          useNotification: true,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        });
-      const data = (await docRef.get()).data();
-      return { id: docRef.id, ...data } as Creditor;
+      return 'SMS Sent'
     } catch (err: any) {
-      throw new InternalServerErrorException(err?.message, {
-        cause: err?.message,
-      });
+      this.logger.error(err);
+      throw new InternalServerErrorException(err?.message);
     }
   }
 

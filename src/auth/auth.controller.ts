@@ -28,25 +28,18 @@ export class AuthController {
 
   @Post('phone/register')
   async register(
-    @Body('phoneNumber') phoneNumber: string,
-    @Body('password') password: string,
+    @Body('phoneNumber') phoneNumber: string
   ) {
-    const token = await this.authService.phoneRegister({
+    const success = await this.authService.phoneRegister({
       email: "",
       firstName: "",
       lastName: "",
       storeName: "",
       rolePackage: RolePackage.FREE,
-      phoneNumber: phoneNumber,
-      password: password
+      phoneNumber: phoneNumber
     });
-    console.log(token);
-    if (token)
-      return {
-        accessToken: token.accessToken,
-        refreshToken: token.refreshToken,
-      };
-    return 'Invalid PhoneNumber or Password or user might already exist';
+    if(success) return "OTP Sent"
+    return "Error"
   }
 
   @Post('phone/login')
@@ -61,7 +54,7 @@ export class AuthController {
         accessToken: token.accessToken,
         refreshToken: token.refreshToken,
       };
-    return 'Invalid PhoneNumber or Password';
+    return 'Invalid PhoneNumber or OTP';
   }
 
   @UseGuards(GoogleAuthGuard)
