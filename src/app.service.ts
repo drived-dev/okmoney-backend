@@ -61,8 +61,7 @@ export class AppService {
           const phoneNumber = debtorDoc.data()?.phoneNumber ?? null;
           if (phoneNumber) {
             // Send SMS notifications based on the due date
-            await this.sendReminderSms(phoneNumber, dueDate, loanStatus, now, creditorDoc.id);
-            return phoneNumber;
+            return await this.sendReminderSms(phoneNumber, dueDate, loanStatus, now, creditorDoc.id);
           }
         }
         return null;
@@ -99,6 +98,7 @@ export class AppService {
       }
       await this.notificationService.sendSms(phoneNumber, message);
       console.log(`Sending SMS to ${phoneNumber} using ${creditorID} credit`)
+      return `Sending SMS to ${phoneNumber} using ${creditorID} credit, ${message}`
     }
   }
 
