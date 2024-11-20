@@ -1,6 +1,5 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { MockAuthGuard } from '../auth/mockAuthGuard';
 import { AuthReqType } from '../auth/reqType';
 import { DashboardService } from './dashboard.service';
 import {
@@ -8,8 +7,9 @@ import {
   GetLoanByTimeDto,
   GetDashboardLoanDto,
 } from './dashboard.dto';
+import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 
-@UseGuards(MockAuthGuard)
+@UseGuards(JwtAuthGuard)
 @ApiTags('dashboard')
 @Controller('dashboard')
 export class DashboardController {

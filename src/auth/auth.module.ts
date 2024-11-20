@@ -11,23 +11,29 @@ import jwtConfig from './jwt.config';
 import { JwtStrategy } from './jwt.strategy';
 import refreshJwtConfig from './refresh-jwt.config';
 import { RefreshJwtStrategy } from './refresh.strategy';
+import { NotificationModule } from '../notification/notification.module';
+import { LineStrategy } from './line.strategy';
+import { HttpModule, HttpService } from '@nestjs/axios';
+import { FacebookStrategy } from './facebook.strategy';
 
 @Module({
   imports: [
-    PassportModule,
+    PassportModule.register({session: true}),
     JwtModule.registerAsync(jwtConfig.asProvider()),
     FirebaseModule,
     ConfigModule.forRoot(),
     ConfigModule.forFeature(jwtConfig),
-    ConfigModule.forFeature(refreshJwtConfig)
+    ConfigModule.forFeature(refreshJwtConfig),
+    NotificationModule,
+    HttpModule,
   ],
-  providers: [AuthService, GoogleStrategy, CreditorService,
+  providers: [AuthService, GoogleStrategy, LineStrategy, FacebookStrategy, CreditorService,
     {
-      provide: 'CONFIGURATION(googleOAuth)',  // Provide the "googleOAuth" configuration
+      provide: 'CONFIGURATION(googleOAuth)', // Provide the "googleOAuth" configuration
       useValue: {
-          clientID: process.env.GOOGLE_CLIENT_ID,
-          clientSecret: process.env.GOOGLE_SECRET,
-          callbackURL: process.env.GOOGLE_CALLBACK_URL,
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_SECRET,
+        callbackURL: process.env.GOOGLE_CALLBACK_URL,
       },
     },
     {
@@ -37,7 +43,7 @@ import { RefreshJwtStrategy } from './refresh.strategy';
       },
     },
     JwtStrategy,
-    RefreshJwtStrategy
+    RefreshJwtStrategy,
   ],
   controllers: [AuthController],
 })

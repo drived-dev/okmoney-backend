@@ -1,4 +1,4 @@
 export type AuthJwtPayload = {
-    email: string;
-    sub: number;
-}
+  type: string; // Google, Facebook, Line, Phone
+  sub: string;
+};

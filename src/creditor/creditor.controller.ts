@@ -1,12 +1,10 @@
 import { ResponseDto } from '@/types/response.dto';
 import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
   Logger,
-  Param,
   Patch,
   Post,
   Req,
@@ -21,8 +19,6 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { MockAuthGuard } from '../auth/mockAuthGuard';
 import { AuthReqType } from '../auth/reqType';
 import { ZodPipe } from '../utils/zodPipe';
 import { CreditorService } from './creditor.service';
@@ -30,23 +26,25 @@ import {
   CreateCreditorDto,
   CreateCreditorSchema,
 } from './dto/create-creditor.dto';
+import { GetRolePackageDto } from './dto/get-creditor.dto';
 import {
   UpdateCreditorDto,
   UpdateCreditorSchema,
 } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
+import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { LoanService } from '@/loan/loan.service';
 
 // TODO: Create test for all endpoints
-// TODO: Add token required on header for all endpoints
 
 @ApiTags('Creditor')
 @Controller('creditor')
 export class CreditorController {
   private readonly logger = new Logger(CreditorController.name);
 
-  constructor(private readonly creditorService: CreditorService) {}
+  constructor(private readonly creditorService: CreditorService, private loanService: LoanService) {}
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Post('profileimage')
   @UseInterceptors(FileInterceptor('file'))
@@ -74,46 +72,57 @@ export class CreditorController {
     @Body(new ZodPipe(CreateCreditorSchema))
     createCreditorDto: CreateCreditorDto,
   ): Promise<Creditor> {
-    const creditor = await this.creditorService.create(createCreditorDto);
+    const creditor =
+      await this.creditorService.createWithPhone(createCreditorDto);
     return creditor;
   }
 
-  // TODO: remove this on production
   @UseGuards(JwtAuthGuard)
-  @Get()
-  @ApiOkResponse({ type: [Creditor] })
-  async findAll(): Promise<Creditor[]> {
-    const creditors = await this.creditorService.findAll();
-    return creditors;
+  @ApiAuthorizationHeader()
+  @Get('/rolepackage')
+  @ApiOkResponse({
+    type: GetRolePackageDto,
+  })
+  async getRolePackage(@Req() req: AuthReqType): Promise<GetRolePackageDto> {
+    const result = await this.creditorService.getRolePackage(req.user?.id);
+    return result;
   }
 
-  // TODO: remove this on production
-  @Get(':id')
-  @ApiOkResponse({ type: Creditor })
-  async findOneTmp(@Param('id') id: string): Promise<Creditor> {
-    if (!id) {
-      throw new BadRequestException('Id is required');
-    }
-    const creditor = await this.creditorService.findOne(id);
-    return creditor;
+  @UseGuards(JwtAuthGuard)
+  @ApiAuthorizationHeader()
+  @Post('/sms')
+  @ApiCreatedResponse({
+    type: ResponseDto,
+    description: 'The SMS reminder has been successfully sent.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+  })
+  async sendReminderSms(
+    @Body("loanId") loanId: string,
+  ): Promise<ResponseDto> {
+    const result = await this.loanService.sendReminderSmsByLoanId(loanId);
+    return result
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Get()
   @ApiOkResponse({ type: Creditor })
   async findOne(@Req() req: AuthReqType): Promise<Creditor> {
-    const creditor = await this.creditorService.findOne(req.user?.id);
+    const creditor = await this.creditorService.findOneWithProfileImage(
+      req.user?.id,
+    );
     return creditor;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Patch()
   @ApiOkResponse({ type: ResponseDto })
   async update(
     @Req() req: AuthReqType,
-    @Body(new ZodPipe(UpdateCreditorSchema)) // apply pipe to only body
+    @Body(new ZodPipe(UpdateCreditorSchema))
     updateCreditorDto: UpdateCreditorDto,
   ) {
     const status = await this.creditorService.update(
@@ -123,7 +132,7 @@ export class CreditorController {
     return status;
   }
 
-  // @UseGuards(MockAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   // @ApiAuthorizationHeader()
   // @Delete()
   // @ApiOkResponse({ type: ResponseDto })

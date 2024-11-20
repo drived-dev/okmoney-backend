@@ -11,7 +11,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { MockAuthGuard } from '../auth/mockAuthGuard';
 import { AuthReqType } from '../auth/reqType';
 import { ZodPipe } from '../utils/zodPipe';
 import { DebtorService } from './debtor.service';
@@ -28,6 +27,7 @@ import { LoanService } from '../loan/loan.service';
 import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
 import { ResponseDto } from '@/types/response.dto';
 import { GetDebtorDto } from './dto/get-debtor.dto';
+import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 
 @ApiTags('Debtor')
 @Controller('debtor')
@@ -37,7 +37,7 @@ export class DebtorController {
     private readonly loanService: LoanService,
   ) {}
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Post('bulk')
   @ApiCreatedResponse({
@@ -58,7 +58,7 @@ export class DebtorController {
     return data;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @ApiCreatedResponse({
     type: CreatedResponseDto,
@@ -79,7 +79,7 @@ export class DebtorController {
     return data;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Get('/mydebtors')
   @ApiOkResponse({
@@ -89,10 +89,11 @@ export class DebtorController {
   async findLoansWithDebtorDetails(@Req() req: AuthReqType) {
     const id = req.user?.id;
     const debtors = await this.debtorService.findLoansWithDebtorDetails(id);
+    console.log(id, debtors)
     return debtors;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Get('/mydebtors/:id')
   @ApiOkResponse({
@@ -111,7 +112,7 @@ export class DebtorController {
     return debtors;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Patch(':id')
   @ApiOkResponse({
@@ -129,7 +130,7 @@ export class DebtorController {
     return status;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Patch('loan/:id')
   @ApiOkResponse({
@@ -147,7 +148,7 @@ export class DebtorController {
     return status;
   }
 
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
   @Delete(':id')
   @ApiOkResponse({

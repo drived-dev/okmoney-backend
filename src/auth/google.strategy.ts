@@ -4,16 +4,17 @@ import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import googleOauthConfig from './google-oauth.config';
 import { ConfigType } from '@nestjs/config';
 import { AuthService } from './auth.service';
+import { RolePackage } from '@/creditor/entities/rolePackage.entity';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
   constructor(
     @Inject('CONFIGURATION(googleOAuth)')
     private readonly googleOAuthConfig: {
-        clientID: string;
-        clientSecret: string;
-        callbackURL: string;
-      },
+      clientID: string;
+      clientSecret: string;
+      callbackURL: string;
+    },
     private authService: AuthService,
   ) {
     super({
@@ -36,7 +37,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       firstName: profile.name.givenName,
       lastName: profile.name.familyName,
       storeName: "",
-      rolePackage: 0,
+      rolePackage: RolePackage.FREE,
       googleId: profile.id,
       //avatarUrl: profile.photos[0].value,
       //password: '',

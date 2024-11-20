@@ -15,35 +15,124 @@ export class AuthService {
     private refreshTokenConfig: ConfigType<typeof refreshJwtConfig>,
   ) {}
 
-  async validateGoogleUser(googleUser) {
+  async validateGoogleUser(googleUser: CreateCreditorDto) {
     if (!googleUser.email) {
-        throw new UnauthorizedException('Google user email is required');
+      throw new UnauthorizedException('Google user email is required');
     }
-    console.log("gg user", googleUser.googleId)
-    //const user = await this.creditorService.findByEmail(googleUser.email);
-    const user = await this.creditorService.checkId(googleUser.googleId)
-    if (user != null) return user;
+    if (!googleUser.googleId) {
+      throw new UnauthorizedException('Google user id is required');
+    }
+    console.log("google user ", googleUser.googleId)
+    const user = await this.creditorService.checkGoogleId(googleUser.googleId)
+    if (user != null) {
+      console.log("google user login")
+      return user;
+    }
+    console.log("creating user with google account")
     return await this.creditorService.create(googleUser);
   }
 
-  googleLogin(req){
+  async validateLineUser(lineUser: CreateCreditorDto) {
+    if (!lineUser.lineId) {
+        throw new UnauthorizedException('Line user is required');
+    }
+    console.log("line user ", lineUser.lineId)
+    const user = await this.creditorService.checkLineId(lineUser.lineId)
+    if (user != null) {
+      console.log("line user login")
+      return user;
+    }
+    console.log("creating user with line account")
+    return await this.creditorService.create(lineUser);
+  }
+
+  async validateFacebookUser(facebookUser: CreateCreditorDto) {
+    if (!facebookUser.facebookId) {
+        throw new UnauthorizedException('Facebook user is required');
+    }
+    console.log("facebook user ", facebookUser.facebookId)
+    const user = await this.creditorService.checkFacebookId(facebookUser.facebookId)
+    if (user != null) {
+      console.log("facebook user login")
+      return user;
+    }
+    console.log("creating user with facebook account")
+    return await this.creditorService.create(facebookUser);
+  }
+
+  async phoneRegister(phoneUser: CreateCreditorDto){
+    if(phoneUser.phoneNumber){
+      const user = await this.creditorService.checkPhone(phoneUser.phoneNumber)
+      if (user == null){
+        const user2 = await this.creditorService.create(phoneUser);
+
+        const payload: AuthJwtPayload = { type: "phone", sub: user2.id };
+        const accessToken = this.jwtService.sign(payload);
+        const refreshToken = this.jwtService.sign(
+          payload,
+          this.refreshTokenConfig,
+        );
+
+        return {
+          accessToken,
+          refreshToken,
+        };
+      }
+    }
+    return null;
+  }
+
+  async phoneLogin(phoneNumber: string, password: string){
+    const user = await this.creditorService.checkPhonePass(phoneNumber, password)
+    if (user != null){
+      const payload: AuthJwtPayload = { type: "phone", sub: user.id };
+      const accessToken = this.jwtService.sign(payload);
+      const refreshToken = this.jwtService.sign(
+        payload,
+        this.refreshTokenConfig,
+      );
+
+      return {
+        accessToken,
+        refreshToken,
+      };
+    }
+    return null;
+  }
+
+  googleLogin(req) {
     if (!req.user) {
-        return 'No user from Google';
+      return 'No user from Google';
     }
 
-    const payload: AuthJwtPayload = { email: req.user.email, sub: req.user.id };
+    const payload: AuthJwtPayload = { type: 'google', sub: req.user.id };
+    console.log(req.user.email);
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
 
     return {
       user: req.user,
       accessToken,
-      refreshToken
+      refreshToken,
     };
   }
 
-  async validateJwtUser(userId: number) {
-    const docRef = await this.creditorService.findById(""+userId);
+  async lineLogin(userId){
+    const payload: AuthJwtPayload = { type: "line", sub: userId };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
+    return { accessToken, refreshToken };
+  }
+
+  async facebookLogin(userId){
+    const payload: AuthJwtPayload = { type: "line", sub: userId };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
+    return { accessToken, refreshToken };
+  }
+
+  async validateJwtUser(userId: string) {
+    const docRef = await this.creditorService.findById(userId);
     if (!docRef) throw new UnauthorizedException('User not found!');
     const user = (await docRef.get()).data();
     if (!user) throw new UnauthorizedException('User not found!');
@@ -51,7 +140,7 @@ export class AuthService {
   }
 
   async refreshToken(req) {
-    const payload: AuthJwtPayload = { email: req.user.email, sub: req.user.id };
+    const payload: AuthJwtPayload = { type: req.user.type, sub: req.user.id };
     const accessToken = this.jwtService.sign(payload);
     return {
       id: req.user.id,

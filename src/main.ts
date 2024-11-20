@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import * as session from 'express-session';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -38,18 +39,29 @@ async function bootstrap() {
 
   app.enableCors(corsOptions);
 
+  // Apply session middleware globally
   app.use(
-    '/reference',
-    apiReference({
-      spec: {
-        content: document,
+    session({
+      secret: 'your_secret_key',  // Replace with a secure random key
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 3600000,  // Session duration in milliseconds (e.g., 1 hour)
       },
     }),
   );
+
+  // Add the API reference route
+  app.use('/reference', apiReference({
+    spec: {
+      content: document,
+    },
+  }));
 
   const port = process.env.PORT || 3000;
   await app.listen(port, () => {
     Logger.log('Listening at http://localhost:' + port + '/' + globalPrefix);
   });
 }
+
 bootstrap();
