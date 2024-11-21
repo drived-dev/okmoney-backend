@@ -21,6 +21,7 @@ import { FacebookAuthGuard } from './facebook.guard';
 import { RefreshAuthGuard } from './refresh-auth.guard';
 import { RolePackage } from '@/creditor/entities/rolePackage.entity';
 import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
+import { access } from 'fs';
 
 @Controller('auth')
 export class AuthController {
@@ -28,7 +29,8 @@ export class AuthController {
 
   @Post('phone/register')
   async register(
-    @Body('phoneNumber') phoneNumber: string
+    @Body('phoneNumber') phoneNumber: string,
+    @Res() res,
   ) {
     const success = await this.authService.phoneRegister({
       email: "",
@@ -38,23 +40,24 @@ export class AuthController {
       rolePackage: RolePackage.FREE,
       phoneNumber: phoneNumber
     });
-    if(success) return "OTP Sent"
-    return "Error"
+    if(success) return res.status(200).send("OTP Sent")
+    return res.status(400).send("Error")
   }
 
   @Post('phone/login')
   async login(
     @Body('phoneNumber') phoneNumber: string,
     @Body('password') password: string,
+    @Res() res,
   ) {
     const token = await this.authService.phoneLogin(phoneNumber, password);
     console.log(token);
     if (token)
-      return {
+      return res.status(200).json({
         accessToken: token.accessToken,
         refreshToken: token.refreshToken,
-      };
-    return 'Invalid PhoneNumber or OTP';
+      });
+    return res.status(400).send('Invalid PhoneNumber or OTP');
   }
 
   @UseGuards(GoogleAuthGuard)
