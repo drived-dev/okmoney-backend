@@ -58,7 +58,7 @@ export class AuthController {
       return res.status(200).json({
         accessToken: token.accessToken,
         refreshToken: token.refreshToken,
-      };
+      });
     throw new HttpException('Invalid PhoneNumber or OTP', HttpStatus.UNPROCESSABLE_ENTITY);
   }
 
