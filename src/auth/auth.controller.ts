@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpException,
+  HttpStatus,
   Post,
   Query,
   Req,
@@ -54,7 +56,7 @@ export class AuthController {
         accessToken: token.accessToken,
         refreshToken: token.refreshToken,
       };
-    return 'Invalid PhoneNumber or OTP';
+    throw new HttpException('Invalid PhoneNumber or OTP', HttpStatus.UNPROCESSABLE_ENTITY);
   }
 
   @UseGuards(GoogleAuthGuard)
