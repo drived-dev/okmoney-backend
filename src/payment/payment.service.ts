@@ -93,18 +93,32 @@ export class PaymentService {
   async injectDebtorName(
     payment: Payment | GetPaymentDto,
   ): Promise<GetPaymentDto> {
-    const debtor = await this.debtorService.findOne(payment.debtorId);
-    return {
-      ...payment,
-      debtorNickname: debtor.nickname,
-    };
+    try {
+      const debtor = await this.debtorService.findOne(payment.debtorId);
+      return {
+        ...payment,
+        debtorNickname: debtor.nickname,
+      };
+    } catch {
+      return {
+        ...payment,
+        debtorId: 'DELETED',
+        debtorNickname: 'DELETED',
+      };
+    }
   }
 
   async injectImageUrl(
     payment: Payment | GetPaymentDto,
   ): Promise<Payment | GetPaymentDto> {
-    const imageUrl = this.generatePaymentImagePath(payment.loanId, payment.id);
-    payment.imageUrl = await this.firebaseRepository.getFileUrl(imageUrl);
+    try {
+      const imageUrl = this.generatePaymentImagePath(
+        payment.loanId,
+        payment.id,
+      );
+      payment.imageUrl = await this.firebaseRepository.getFileUrl(imageUrl);
+      return payment;
+    } catch {}
     return payment;
   }
 

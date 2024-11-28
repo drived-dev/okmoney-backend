@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   forwardRef,
   Inject,
   Injectable,
@@ -39,6 +40,14 @@ export class DebtorService {
     createExistingDebtorDto: CreateExistingDebtorDto,
     creditorId: string,
   ) {
+    const isExistingDebtor = createExistingDebtorDto.paidAmount;
+    const isAtLeastToday = this.checkIsAtLeastToday(
+      createExistingDebtorDto.loan.dueDate,
+    );
+    if (!isExistingDebtor && !isAtLeastToday) {
+      throw new BadRequestException('Loan is past due date');
+    }
+
     const debtor = await this.create(createExistingDebtorDto.debtor);
     let loan: Loan;
     try {
@@ -54,13 +63,11 @@ export class DebtorService {
       });
     }
 
-    // If new debtor, return
-    if (!createExistingDebtorDto?.paidAmount) return { debtor, loan };
+    if (!isExistingDebtor) return { debtor, loan };
 
-    // Create payment for existing debtor
     try {
       const payment = await this.paymentService.create({
-        amount: createExistingDebtorDto.paidAmount,
+        amount: createExistingDebtorDto.paidAmount as number,
         loanId: loan.id,
         debtorId: debtor.id,
         creditorId: creditorId,
@@ -68,7 +75,7 @@ export class DebtorService {
       });
       await this.loanService.payLoan(
         loan.id,
-        createExistingDebtorDto.paidAmount,
+        createExistingDebtorDto.paidAmount as number,
       );
       return { debtor, loan, payment };
     } catch (err: any) {
@@ -256,5 +263,11 @@ export class DebtorService {
         cause: err?.message,
       });
     }
+  }
+
+  checkIsAtLeastToday(dueDate: number): boolean {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return dueDate >= today.getTime();
   }
 }

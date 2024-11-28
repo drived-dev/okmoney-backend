@@ -5,6 +5,8 @@ import { CreateCreditorDto } from 'src/creditor/dto/create-creditor.dto';
 import { CreditorService } from 'src/creditor/creditor.service';
 import { AuthJwtPayload } from './auth-jwtPayload';
 import refreshJwtConfig from './refresh-jwt.config';
+import { FirebaseRepository } from '@/firebase/firebase.service';
+import * as admin from 'firebase-admin';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +15,7 @@ export class AuthService {
     private creditorService: CreditorService,
     @Inject(refreshJwtConfig.KEY)
     private refreshTokenConfig: ConfigType<typeof refreshJwtConfig>,
+    private firebaseRepository: FirebaseRepository
   ) {}
 
   async validateGoogleUser(googleUser: CreateCreditorDto) {
@@ -62,41 +65,37 @@ export class AuthService {
 
   async phoneRegister(phoneUser: CreateCreditorDto){
     if(phoneUser.phoneNumber){
-      const user = await this.creditorService.checkPhone(phoneUser.phoneNumber)
-      if (user == null){
-        const user2 = await this.creditorService.create(phoneUser);
-
-        const payload: AuthJwtPayload = { type: "phone", sub: user2.id };
-        const accessToken = this.jwtService.sign(payload);
-        const refreshToken = this.jwtService.sign(
-          payload,
-          this.refreshTokenConfig,
-        );
-
-        return {
-          accessToken,
-          refreshToken,
-        };
-      }
+      return await this.creditorService.createWithPhone(phoneUser);
     }
-    return null;
+    return "missing phone number";
   }
 
-  async phoneLogin(phoneNumber: string, password: string){
-    const user = await this.creditorService.checkPhonePass(phoneNumber, password)
-    if (user != null){
-      const payload: AuthJwtPayload = { type: "phone", sub: user.id };
+  async phoneLogin(phoneNumber: string, password: string) {
+    const user = await this.creditorService.checkPhonePass(phoneNumber, password);
+  
+    if (user) {
+      const payload: AuthJwtPayload = { type: 'phone', sub: user.id };
       const accessToken = this.jwtService.sign(payload);
       const refreshToken = this.jwtService.sign(
         payload,
         this.refreshTokenConfig,
       );
-
+  
+      // Remove password from the user's record after successful login
+      await this.firebaseRepository.db
+        .collection("creditor")
+        .doc(user.id)
+        .update({
+          password: admin.firestore.FieldValue.delete(),
+          updatedAt: Date.now(),
+        });
+  
       return {
         accessToken,
         refreshToken,
       };
     }
+  
     return null;
   }
 
