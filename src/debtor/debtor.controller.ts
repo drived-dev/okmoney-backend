@@ -55,7 +55,11 @@ export class DebtorController {
       bulkCreateDebtorDto,
       req.user.id,
     );
-    return data;
+    return {
+      data: data,
+      success: true,
+      message: 'Debtors Created Successfully',
+    };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -76,7 +80,11 @@ export class DebtorController {
       createDebtorDto,
       req.user.id,
     );
-    return data;
+    return {
+      data: data,
+      success: true,
+      message: 'Debtor Created Successfully',
+    };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -89,7 +97,7 @@ export class DebtorController {
   async findLoansWithDebtorDetails(@Req() req: AuthReqType) {
     const id = req.user?.id;
     const debtors = await this.debtorService.findLoansWithDebtorDetails(id);
-    console.log(id, debtors)
+    console.log(id, debtors);
     return debtors;
   }
 

@@ -1,3 +1,5 @@
+import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { LoanService } from '@/loan/loan.service';
 import { ResponseDto } from '@/types/response.dto';
 import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
 import {
@@ -22,18 +24,12 @@ import {
 import { AuthReqType } from '../auth/reqType';
 import { ZodPipe } from '../utils/zodPipe';
 import { CreditorService } from './creditor.service';
-import {
-  CreateCreditorDto,
-  CreateCreditorSchema,
-} from './dto/create-creditor.dto';
 import { GetRolePackageDto } from './dto/get-creditor.dto';
 import {
   UpdateCreditorDto,
   UpdateCreditorSchema,
 } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
-import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
-import { LoanService } from '@/loan/loan.service';
 
 // TODO: Create test for all endpoints
 
@@ -42,7 +38,10 @@ import { LoanService } from '@/loan/loan.service';
 export class CreditorController {
   private readonly logger = new Logger(CreditorController.name);
 
-  constructor(private readonly creditorService: CreditorService, private loanService: LoanService) {}
+  constructor(
+    private readonly creditorService: CreditorService,
+    private loanService: LoanService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @ApiAuthorizationHeader()
@@ -98,11 +97,9 @@ export class CreditorController {
   @ApiBadRequestResponse({
     description: 'Bad Request',
   })
-  async sendReminderSms(
-    @Body("loanId") loanId: string,
-  ): Promise<ResponseDto> {
+  async sendReminderSms(@Body('loanId') loanId: string): Promise<ResponseDto> {
     const result = await this.loanService.sendReminderSmsByLoanId(loanId);
-    return result
+    return result;
   }
 
   @UseGuards(JwtAuthGuard)

@@ -37,9 +37,13 @@ export const BulkCreateDebtorSchema = z.object({
 export class BulkCreateDebtorDto extends createZodDto(BulkCreateDebtorSchema) {}
 
 const CreatedResponseSchema = z.object({
-  debtor: DebtorSchema,
-  loan: LoanSchema,
-  payment: PaymentSchema.optional(),
+  data: z.object({
+    debtor: DebtorSchema,
+    loan: LoanSchema,
+    payment: PaymentSchema.optional(),
+  }),
+  success: z.boolean(),
+  message: z.string(),
 });
 
 export class CreatedResponseDto extends createZodDto(CreatedResponseSchema) {}

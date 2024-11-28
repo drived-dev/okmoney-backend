@@ -8,7 +8,12 @@ import jwtConfig from '@/auth/jwt.config';
 import { LoanModule } from '@/loan/loan.module';
 
 @Module({
-  imports: [FirebaseModule, NotificationModule, LoanModule, JwtModule.registerAsync(jwtConfig.asProvider())],
+  imports: [
+    FirebaseModule,
+    NotificationModule,
+    LoanModule,
+    JwtModule.registerAsync(jwtConfig.asProvider()),
+  ],
   controllers: [CreditorController],
   providers: [CreditorService],
   exports: [CreditorService],

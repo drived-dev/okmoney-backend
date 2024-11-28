@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreateLoanDto } from './dto/create-loan.dto';
-import { Loan, LoanSchema } from './entities/loan.entity';
+import { Loan, LoanSchema, LoanStatus } from './entities/loan.entity';
 import { UpdateLoanDto } from './dto/update-loan.dto';
 import { FieldValue } from 'firebase-admin/firestore';
 import { ResponseDto } from '@/types/response.dto';
@@ -19,10 +19,16 @@ export const loanCollection = 'loan';
 export class LoanService {
   private readonly logger = new Logger(LoanService.name);
 
-  constructor(private firebaseRepository: FirebaseRepository, private notificationService: NotificationService) {}
+  constructor(
+    private firebaseRepository: FirebaseRepository,
+    private notificationService: NotificationService,
+  ) {}
 
   async create(createLoanDto: CreateLoanDto): Promise<Loan> {
     try {
+      const dueDate = createLoanDto.dueDate;
+      const loanStatus = this.calculateLoanStatus(dueDate);
+      createLoanDto.loanStatus = loanStatus;
       const docRef = await this.firebaseRepository.db
         .collection(loanCollection)
         .add({
@@ -206,9 +212,25 @@ export class LoanService {
     }
   }
 
+  calculateLoanStatus(dueDate: number): LoanStatus {
+    const now = new Date();
+    const daysToDueDate = Math.ceil(
+      (dueDate - now.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    // due date in range 2 days
+    if (daysToDueDate <= 2 && daysToDueDate > 0) {
+      return LoanStatus.DUE;
+    } else if (daysToDueDate > 2) {
+      return LoanStatus.UNDERDUE;
+    } else {
+      return LoanStatus.OVERDUE;
+    }
+  }
+
   async sendReminderSmsByLoanId(loanId: string) {
     try {
-      console.log(loanId)
+      console.log(loanId);
       if (!loanId || typeof loanId !== 'string' || loanId.trim() === '') {
         this.logger.error('Invalid loanId provided.');
         throw new NotFoundException('Invalid loanId provided.');
@@ -219,49 +241,60 @@ export class LoanService {
         .collection(loanCollection)
         .doc(loanId)
         .get();
-      
+
       const loanData = querySnapshot.data();
       if (!loanData) {
         this.logger.error(`Loan with id ${loanId} does not exist`);
         throw new NotFoundException(`Loan with id ${loanId} does not exist`);
       }
-  
+
       const dueDate = loanData.dueDate;
       const loanStatus = loanData.loanStatus;
-  
+
       // Check if dueDate is a valid date
       if (!dueDate) {
         this.logger.error(`Due date for loan with id ${loanId} is missing`);
-        return { message: `Due date for loan with id ${loanId} is missing`, success: false };
+        return {
+          message: `Due date for loan with id ${loanId} is missing`,
+          success: false,
+        };
       }
-  
+
       // Calculate date differences
-      const daysToDueDate = Math.ceil((dueDate - now.getTime()) / (1000 * 60 * 60 * 24));
-      
+      const daysToDueDate = Math.ceil(
+        (dueDate - now.getTime()) / (1000 * 60 * 60 * 24),
+      );
+
       // Define the conditions for sending SMS reminders
-      const shouldSendReminder = 
-        (daysToDueDate === 2 && loanStatus !== "CLOSED") ||  // 2 days before
-        (daysToDueDate === 1 && loanStatus !== "CLOSED") ||  // 1 day before
-        (daysToDueDate === 0 && loanStatus !== "CLOSED") ||  // on due date
-        (daysToDueDate < 0 && loanStatus !== "CLOSED");       // overdue
-  
+      const shouldSendReminder =
+        (daysToDueDate === 2 && loanStatus !== 'CLOSED') || // 2 days before
+        (daysToDueDate === 1 && loanStatus !== 'CLOSED') || // 1 day before
+        (daysToDueDate === 0 && loanStatus !== 'CLOSED') || // on due date
+        (daysToDueDate < 0 && loanStatus !== 'CLOSED'); // overdue
+
       if (shouldSendReminder) {
         const debtorId = loanData.debtorId;
         if (!debtorId) {
           this.logger.warn(`Debtor ID for loan with id ${loanId} is missing`);
-          return { message: `Debtor ID for loan with id ${loanId} is missing`, success: false };
+          return {
+            message: `Debtor ID for loan with id ${loanId} is missing`,
+            success: false,
+          };
         }
-  
+
         const debtorDoc = await this.firebaseRepository.db
-          .collection("debtor")
+          .collection('debtor')
           .doc(debtorId)
           .get();
-  
+
         if (!debtorDoc.exists) {
           this.logger.error(`Debtor with id ${debtorId} does not exist`);
-          return { message: `Debtor with id ${debtorId} does not exist`, success: false };
+          return {
+            message: `Debtor with id ${debtorId} does not exist`,
+            success: false,
+          };
         }
-  
+
         const phoneNumber = debtorDoc.data()?.phoneNumber;
         if (phoneNumber) {
           // Determine the message based on the days to due date
@@ -275,13 +308,18 @@ export class LoanService {
           } else if (daysToDueDate < 0) {
             message = `Reminder: Loan was due on ${new Date(dueDate).toDateString()}.`;
           }
-  
+
           // Send SMS
           await this.notificationService.sendSms(phoneNumber, message);
-          return { message: "SMS sent successfully", success: true };
+          return { message: 'SMS sent successfully', success: true };
         } else {
-          this.logger.warn(`Phone number for debtor with id ${debtorId} is missing`);
-          return { message: `Phone number for debtor with id ${debtorId} is missing`, success: false };
+          this.logger.warn(
+            `Phone number for debtor with id ${debtorId} is missing`,
+          );
+          return {
+            message: `Phone number for debtor with id ${debtorId} is missing`,
+            success: false,
+          };
         }
       }
     } catch (err: any) {
@@ -290,6 +328,6 @@ export class LoanService {
         cause: err?.message,
       });
     }
-    return { message: "unknown error", success: false };
+    return { message: 'unknown error', success: false };
   }
 }
