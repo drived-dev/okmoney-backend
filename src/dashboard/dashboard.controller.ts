@@ -7,7 +7,7 @@ import {
   GetLoanByTimeDto,
   GetDashboardLoanDto,
 } from './dashboard.dto';
-import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
 @ApiTags('dashboard')
