@@ -1,9 +1,9 @@
-import { AuthReqType } from '@/auth/reqType';
-import { Loan } from '@/loan/entities/loan.entity';
-import { LoanService } from '@/loan/loan.service';
-import { ResponseDto } from '@/types/response.dto';
-import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
-import { ZodPipe } from '@/utils/zodPipe';
+import { AuthReqType } from '../auth/reqType';
+import { Loan } from '../loan/entities/loan.entity';
+import { LoanService } from '../loan/loan.service';
+import { ResponseDto } from '../types/response.dto';
+import { ApiAuthorizationHeader } from '../utils/auth.decorator';
+import { ZodPipe } from '../utils/zodPipe';
 import {
   Body,
   Controller,
@@ -31,7 +31,7 @@ import { UpdateGuarantorDto } from './dto/update-guarantor.dto';
 import { Guarantor } from './entities/guarantor.entity';
 import { GuarantorService } from './guarantor.service';
 import { FieldValue } from 'firebase-admin/firestore';
-import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Guarantor')
 @Controller('guarantor')

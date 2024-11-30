@@ -21,7 +21,7 @@ import {
 import { UpdateDebtorDto } from './dto/update-debtor.dto';
 import { Debtor, DebtorSchema } from './entities/debtor.entity';
 import { GetDebtorDto } from './dto/get-debtor.dto';
-import { ResponseDto } from '@/types/response.dto';
+import { ResponseDto } from '../types/response.dto';
 
 export const debtorCollection = 'debtor';
 

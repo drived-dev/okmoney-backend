@@ -1,5 +1,5 @@
-import { DebtorModule } from '@/debtor/debtor.module';
-import { LoanModule } from '@/loan/loan.module';
+import { DebtorModule } from '../debtor/debtor.module';
+import { LoanModule } from '../loan/loan.module';
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { FirebaseModule } from '../firebase/firebase.module';

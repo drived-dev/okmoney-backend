@@ -1,4 +1,4 @@
-import { PaymentSchema } from '@/payment/entities/payment.entity';
+import { PaymentSchema } from '../../payment/entities/payment.entity';
 import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 import { LoanSchema } from '../../loan/entities/loan.entity';

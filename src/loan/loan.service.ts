@@ -10,8 +10,8 @@ import { CreateLoanDto } from './dto/create-loan.dto';
 import { Loan, LoanSchema, LoanStatus } from './entities/loan.entity';
 import { UpdateLoanDto } from './dto/update-loan.dto';
 import { FieldValue } from 'firebase-admin/firestore';
-import { ResponseDto } from '@/types/response.dto';
-import { NotificationService } from '@/notification/notification.service';
+import { ResponseDto } from '../types/response.dto';
+import { NotificationService } from '../notification/notification.service';
 
 export const loanCollection = 'loan';
 

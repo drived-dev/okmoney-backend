@@ -5,7 +5,7 @@ import { CreateCreditorDto } from 'src/creditor/dto/create-creditor.dto';
 import { CreditorService } from 'src/creditor/creditor.service';
 import { AuthJwtPayload } from './auth-jwtPayload';
 import refreshJwtConfig from './refresh-jwt.config';
-import { FirebaseRepository } from '@/firebase/firebase.service';
+import { FirebaseRepository } from '../firebase/firebase.service';
 import * as admin from 'firebase-admin';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class AuthService {
     private creditorService: CreditorService,
     @Inject(refreshJwtConfig.KEY)
     private refreshTokenConfig: ConfigType<typeof refreshJwtConfig>,
-    private firebaseRepository: FirebaseRepository
+    private firebaseRepository: FirebaseRepository,
   ) {}
 
   async validateGoogleUser(googleUser: CreateCreditorDto) {
@@ -25,54 +25,59 @@ export class AuthService {
     if (!googleUser.googleId) {
       throw new UnauthorizedException('Google user id is required');
     }
-    console.log("google user ", googleUser.googleId)
-    const user = await this.creditorService.checkGoogleId(googleUser.googleId)
+    console.log('google user ', googleUser.googleId);
+    const user = await this.creditorService.checkGoogleId(googleUser.googleId);
     if (user != null) {
-      console.log("google user login")
+      console.log('google user login');
       return user;
     }
-    console.log("creating user with google account")
+    console.log('creating user with google account');
     return await this.creditorService.create(googleUser);
   }
 
   async validateLineUser(lineUser: CreateCreditorDto) {
     if (!lineUser.lineId) {
-        throw new UnauthorizedException('Line user is required');
+      throw new UnauthorizedException('Line user is required');
     }
-    console.log("line user ", lineUser.lineId)
-    const user = await this.creditorService.checkLineId(lineUser.lineId)
+    console.log('line user ', lineUser.lineId);
+    const user = await this.creditorService.checkLineId(lineUser.lineId);
     if (user != null) {
-      console.log("line user login")
+      console.log('line user login');
       return user;
     }
-    console.log("creating user with line account")
+    console.log('creating user with line account');
     return await this.creditorService.create(lineUser);
   }
 
   async validateFacebookUser(facebookUser: CreateCreditorDto) {
     if (!facebookUser.facebookId) {
-        throw new UnauthorizedException('Facebook user is required');
+      throw new UnauthorizedException('Facebook user is required');
     }
-    console.log("facebook user ", facebookUser.facebookId)
-    const user = await this.creditorService.checkFacebookId(facebookUser.facebookId)
+    console.log('facebook user ', facebookUser.facebookId);
+    const user = await this.creditorService.checkFacebookId(
+      facebookUser.facebookId,
+    );
     if (user != null) {
-      console.log("facebook user login")
+      console.log('facebook user login');
       return user;
     }
-    console.log("creating user with facebook account")
+    console.log('creating user with facebook account');
     return await this.creditorService.create(facebookUser);
   }
 
-  async phoneRegister(phoneUser: CreateCreditorDto){
-    if(phoneUser.phoneNumber){
+  async phoneRegister(phoneUser: CreateCreditorDto) {
+    if (phoneUser.phoneNumber) {
       return await this.creditorService.createWithPhone(phoneUser);
     }
-    return "missing phone number";
+    return 'missing phone number';
   }
 
   async phoneLogin(phoneNumber: string, password: string) {
-    const user = await this.creditorService.checkPhonePass(phoneNumber, password);
-  
+    const user = await this.creditorService.checkPhonePass(
+      phoneNumber,
+      password,
+    );
+
     if (user) {
       const payload: AuthJwtPayload = { type: 'phone', sub: user.id };
       const accessToken = this.jwtService.sign(payload);
@@ -80,22 +85,22 @@ export class AuthService {
         payload,
         this.refreshTokenConfig,
       );
-  
+
       // Remove password from the user's record after successful login
       await this.firebaseRepository.db
-        .collection("creditor")
+        .collection('creditor')
         .doc(user.id)
         .update({
           password: admin.firestore.FieldValue.delete(),
           updatedAt: Date.now(),
         });
-  
+
       return {
         accessToken,
         refreshToken,
       };
     }
-  
+
     return null;
   }
 
@@ -116,15 +121,15 @@ export class AuthService {
     };
   }
 
-  async lineLogin(userId){
-    const payload: AuthJwtPayload = { type: "line", sub: userId };
+  async lineLogin(userId) {
+    const payload: AuthJwtPayload = { type: 'line', sub: userId };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
     return { accessToken, refreshToken };
   }
 
-  async facebookLogin(userId){
-    const payload: AuthJwtPayload = { type: "line", sub: userId };
+  async facebookLogin(userId) {
+    const payload: AuthJwtPayload = { type: 'line', sub: userId };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
     return { accessToken, refreshToken };

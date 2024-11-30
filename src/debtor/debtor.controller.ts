@@ -25,9 +25,9 @@ import { UpdateDebtorDto, UpdateDebtorSchema } from './dto/update-debtor.dto';
 import { UpdateLoanDto, UpdateLoanSchema } from '../loan/dto/update-loan.dto';
 import { LoanService } from '../loan/loan.service';
 import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
-import { ResponseDto } from '@/types/response.dto';
+import { ResponseDto } from '../types/response.dto';
 import { GetDebtorDto } from './dto/get-debtor.dto';
-import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Debtor')
 @Controller('debtor')

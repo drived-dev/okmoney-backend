@@ -1,5 +1,5 @@
-import { Loan, LoanSchema } from '@/loan/entities/loan.entity';
-import { loanCollection } from '@/loan/loan.service';
+import { Loan, LoanSchema } from '../loan/entities/loan.entity';
+import { loanCollection } from '../loan/loan.service';
 import {
   Injectable,
   InternalServerErrorException,
@@ -9,7 +9,7 @@ import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreateGuarantorDto } from './dto/create-guarantor.dto';
 import { UpdateGuarantorDto } from './dto/update-guarantor.dto';
 import { Guarantor, GuarantorSchema } from './entities/guarantor.entity';
-import { ResponseDto } from '@/types/response.dto';
+import { ResponseDto } from '../types/response.dto';
 
 export const GUARANTOR_COLLECTION = 'guarantor';
 

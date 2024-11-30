@@ -4,8 +4,8 @@ import { CreditorController } from './creditor.controller';
 import { FirebaseModule } from '../firebase/firebase.module';
 import { NotificationModule } from '../notification/notification.module';
 import { JwtModule } from '@nestjs/jwt';
-import jwtConfig from '@/auth/jwt.config';
-import { LoanModule } from '@/loan/loan.module';
+import jwtConfig from '../auth/jwt.config';
+import { LoanModule } from '../loan/loan.module';
 
 @Module({
   imports: [

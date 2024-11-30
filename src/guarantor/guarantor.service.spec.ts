@@ -1,4 +1,4 @@
-import { FirebaseRepository } from '@/firebase/firebase.service';
+import { FirebaseRepository } from '../firebase/firebase.service';
 import {
   InternalServerErrorException,
   NotFoundException,

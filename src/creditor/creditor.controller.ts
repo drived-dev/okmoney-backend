@@ -1,7 +1,7 @@
-import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
-import { LoanService } from '@/loan/loan.service';
-import { ResponseDto } from '@/types/response.dto';
-import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { LoanService } from '../loan/loan.service';
+import { ResponseDto } from '../types/response.dto';
+import { ApiAuthorizationHeader } from '../utils/auth.decorator';
 import {
   Body,
   Controller,

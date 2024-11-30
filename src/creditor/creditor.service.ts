@@ -10,9 +10,9 @@ import { FirebaseRepository } from '../firebase/firebase.service';
 import { CreateCreditorDto } from './dto/create-creditor.dto';
 import { UpdateCreditorDto } from './dto/update-creditor.dto';
 import { Creditor } from './entities/creditor.entity';
-import { generateOtp } from '@/utils/generateOtp';
+import { generateOtp } from '../utils/generateOtp';
 import { NotificationService } from '../notification/notification.service';
-import { ResponseDto } from '@/types/response.dto';
+import { ResponseDto } from '../types/response.dto';
 
 const creditorCollection = 'creditor';
 
@@ -161,18 +161,16 @@ export class CreditorService {
     }
   }
 
-  async createWithPhone(
-    createCreditorDto: CreateCreditorDto,
-  ){
+  async createWithPhone(createCreditorDto: CreateCreditorDto) {
     if (!createCreditorDto.phoneNumber) {
       throw new ForbiddenException('No phone number provided');
     }
-  
+
     const otp = generateOtp(); // Generate OTP beforehand for reuse.
-  
+
     try {
       const ref = await this.checkPhone(createCreditorDto.phoneNumber);
-  
+
       if (ref) {
         // Existing user case.
         console.log('Generating new OTP for existing user');
@@ -196,17 +194,17 @@ export class CreditorService {
             createdAt: Date.now(),
             updatedAt: Date.now(),
           });
-  
+
         const data = (await docRef.get()).data();
         return { id: docRef.id, ...data } as Creditor;
       }
-  
+
       // Send OTP notification.
       this.notificationService.sendSms(
         createCreditorDto.phoneNumber,
         'This is the OTP for logging in to OK Money: ' + otp,
       );
-      return 'SMS Sent'
+      return 'SMS Sent';
     } catch (err: any) {
       this.logger.error(err);
       throw new InternalServerErrorException(err?.message);

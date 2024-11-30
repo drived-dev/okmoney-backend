@@ -1,5 +1,5 @@
-import { ResponseDto } from '@/types/response.dto';
-import { ApiAuthorizationHeader } from '@/utils/auth.decorator';
+import { ResponseDto } from '../types/response.dto';
+import { ApiAuthorizationHeader } from '../utils/auth.decorator';
 import {
   BadRequestException,
   Body,
@@ -34,7 +34,7 @@ import {
 } from './dto/create-payment.dto';
 import { GetPaymentDto } from './dto/get-payment.dto';
 import { PaymentService } from './payment.service';
-import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Payment')
 @Controller('payment')
