@@ -24,7 +24,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: testing
 
     strategy:
       matrix:
