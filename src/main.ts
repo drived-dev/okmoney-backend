@@ -42,21 +42,24 @@ async function bootstrap() {
   // Apply session middleware globally
   app.use(
     session({
-      secret: 'your_secret_key',  // Replace with a secure random key
+      secret: 'your_secret_key', // Replace with a secure random key
       resave: false,
       saveUninitialized: false,
       cookie: {
-        maxAge: 3600000,  // Session duration in milliseconds (e.g., 1 hour)
+        maxAge: 3600000, // Session duration in milliseconds (e.g., 1 hour)
       },
     }),
   );
 
   // Add the API reference route
-  app.use('/reference', apiReference({
-    spec: {
-      content: document,
-    },
-  }));
+  app.use(
+    '/reference',
+    apiReference({
+      spec: {
+        content: document,
+      },
+    }),
+  );
 
   const port = process.env.PORT || 3000;
   await app.listen(port, () => {

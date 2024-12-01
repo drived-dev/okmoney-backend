@@ -18,7 +18,7 @@ import { FacebookStrategy } from './facebook.strategy';
 
 @Module({
   imports: [
-    PassportModule.register({session: true}),
+    PassportModule.register({ session: true }),
     JwtModule.registerAsync(jwtConfig.asProvider()),
     FirebaseModule,
     ConfigModule.forRoot(),
@@ -27,7 +27,12 @@ import { FacebookStrategy } from './facebook.strategy';
     NotificationModule,
     HttpModule,
   ],
-  providers: [AuthService, GoogleStrategy, LineStrategy, FacebookStrategy, CreditorService,
+  providers: [
+    AuthService,
+    GoogleStrategy,
+    LineStrategy,
+    FacebookStrategy,
+    CreditorService,
     {
       provide: 'CONFIGURATION(googleOAuth)', // Provide the "googleOAuth" configuration
       useValue: {
