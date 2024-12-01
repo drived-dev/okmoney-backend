@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build Docker Image
 
 env:
   TYPE: ${{ secrets.TYPE }}
@@ -18,13 +18,10 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
-  build:
+  build-image:
     runs-on: ubuntu-latest
     environment: testing
 
@@ -36,16 +33,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install dependencies
-        run: npm install
+      - name: Build Docker image
+        run: docker build -t ghcr.io/${{ github.repository }}:latest .
 
-      - name: Build NestJS project
-        run: npm run build
-
-      - name: Run tests
-        run: npm test
+      - name: Push Docker image to GitHub Container Registry
+        run: docker push ghcr.io/${{ github.repository }}:latest
