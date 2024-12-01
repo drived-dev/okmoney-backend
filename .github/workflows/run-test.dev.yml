@@ -28,7 +28,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18] # You can specify multiple versions if needed
+        node-version: [20] # You can specify multiple versions if needed
 
     steps:
       - name: Checkout repository
