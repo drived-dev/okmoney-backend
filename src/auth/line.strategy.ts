@@ -9,12 +9,16 @@ export class LineStrategy extends PassportStrategy(Strategy, 'line') {
       channelID: process.env.LINE_CHANNEL_ID,
       channelSecret: process.env.LINE_CHANNEL_SECRET,
       callbackURL: process.env.LINE_CALLBACK_URL,
-      scope: 'openid'
+      scope: 'openid',
     });
-
   }
 
-  async validate(accessToken: string, refreshToken: string, profile: any, done: Function) {
+  async validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: any,
+    done: Function,
+  ) {
     const { id, displayName, pictureUrl, email } = profile;
     const user = {
       id,
