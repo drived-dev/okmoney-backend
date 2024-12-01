@@ -15,11 +15,17 @@ env:
   PORT: ${{ vars.PORT }}
 
 on:
+  push:
+    branches:
+      - dev
+      - '**' # This pattern matches any branch to trigger the workflow on push
+      - '!main' # This pattern excludes the main branch
   pull_request:
     branches:
-      - main
-      - develop
+      - dev
       - '**' # This pattern matches any branch to trigger the workflow on PR
+      - '!main' # This pattern excludes the main branch
+  workflow_dispatch:
 
 jobs:
   build:
