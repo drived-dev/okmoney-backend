@@ -1,0 +1,49 @@
+name: Build and Test
+
+env:
+  TYPE: ${{ secrets.TYPE }}
+  PROJECT_ID: ${{ secrets.PROJECT_ID }}
+  PRIVATE_KEY_ID: ${{ secrets.PRIVATE_KEY_ID }}
+  PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+  CLIENT_EMAIL: ${{ secrets.CLIENT_EMAIL }}
+  CLIENT_ID: ${{ secrets.CLIENT_ID }}
+  AUTH_URI: ${{ secrets.AUTH_URI }}
+  TOKEN_URI: ${{ secrets.TOKEN_URI }}
+  AUTH_CERT_URL: ${{ secrets.AUTH_CERT_URL }}
+  CLIENT_CERT_URL: ${{ secrets.CLIENT_CERT_URL }}
+  UNIVERSAL_DOMAIN: ${{ secrets.UNIVERSAL_DOMAIN }}
+  PORT: ${{ vars.PORT }}
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - '**' # This pattern matches any branch to trigger the workflow on PR
+      - '!main' # This pattern excludes the main branch
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18] # You can specify multiple versions if needed
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build NestJS project
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
