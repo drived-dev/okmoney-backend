@@ -96,7 +96,7 @@ export class AuthController {
     const data = qs.stringify({
       grant_type: 'authorization_code',
       code: code,
-      redirect_uri: 'http://localhost:3000/api/auth/line/callback',
+      redirect_uri: 'https://okmoneys.com/api/auth/line/callback',
       client_id: process.env.LINE_CHANNEL_ID,
       client_secret: process.env.LINE_CHANNEL_SECRET,
     });
@@ -141,7 +141,7 @@ export class AuthController {
     const data = qs.stringify({
       client_id: process.env.FACEBOOK_APP_ID,
       client_secret: process.env.FACEBOOK_APP_SECRET,
-      redirect_uri: 'http://localhost:3000/api/auth/facebook/callback',
+      redirect_uri: 'https://okmoneys.com/api/auth/facebook/callback',
       code: code,
     });
 
