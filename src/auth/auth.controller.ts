@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Post,
   Query,
+  Redirect,
   Req,
   Res,
   UnauthorizedException,
@@ -22,6 +23,7 @@ import * as jwt from 'jsonwebtoken';
 import { FacebookAuthGuard } from './facebook.guard';
 import { RefreshAuthGuard } from './refresh-auth.guard';
 import { RolePackage } from '../creditor/entities/rolePackage.entity';
+import { generateHtml } from '@/utils/generateHtml';
 
 @Controller('auth')
 export class AuthController {
@@ -81,8 +83,12 @@ export class AuthController {
     }
     console.log(token);
     console.log(user.id);
-    const redirectUrl = `${process.env.FRONTEND_URL}/auth/google?token=${token.accessToken}&refreshToken=${token.refreshToken}&userId=${user.id}`;
-    return res.redirect(302, redirectUrl);
+    const redirectUrl = `${process.env.FRONTEND_URL}/auth/google?token=${token.accessToken}&refreshToken=${token.refreshToken}`;
+    const html = generateHtml(redirectUrl);
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+    //const redirectUrl = `${process.env.BACKEND_URL}/api/auth/app/google?token=${token.accessToken}&refreshToken=${token.refreshToken}&userId=${user.id}`;
+    //return res.redirect(302, redirectUrl);
   }
 
   @UseGuards(LineAuthGuard)
@@ -96,7 +102,7 @@ export class AuthController {
     const data = qs.stringify({
       grant_type: 'authorization_code',
       code: code,
-      redirect_uri: 'https://okmoneys.com/api/auth/line/callback',
+      redirect_uri: process.env.LINE_CALLBACK_URL,
       client_id: process.env.LINE_CHANNEL_ID,
       client_secret: process.env.LINE_CHANNEL_SECRET,
     });
@@ -124,7 +130,11 @@ export class AuthController {
       const token = await this.authService.lineLogin(user.id);
       console.log('Generated tokens:', token);
       const redirectUrl = `${process.env.FRONTEND_URL}/auth/line?token=${token.accessToken}&refreshToken=${token.refreshToken}`;
-      return res.redirect(302, redirectUrl);
+      const html = generateHtml(redirectUrl);
+      res.setHeader('Content-Type', 'text/html');
+      res.send(html);
+      // const redirectUrl = `${process.env.BACKEND_URL}/api/auth/app/line?token=${token.accessToken}&refreshToken=${token.refreshToken}`;
+      // return res.redirect(302, redirectUrl);
     } catch (error) {
       console.error('Error making POST request', error);
     }
@@ -141,7 +151,7 @@ export class AuthController {
     const data = qs.stringify({
       client_id: process.env.FACEBOOK_APP_ID,
       client_secret: process.env.FACEBOOK_APP_SECRET,
-      redirect_uri: 'https://okmoneys.com/api/auth/facebook/callback',
+      redirect_uri: process.env.FACEBOOK_REDIRECT_URL,
       code: code,
     });
 
@@ -173,8 +183,14 @@ export class AuthController {
       });
 
       const token = await this.authService.facebookLogin(user.id);
+
       const redirectUrl = `${process.env.FRONTEND_URL}/auth/facebook?token=${token.accessToken}&refreshToken=${token.refreshToken}`;
-      return res.redirect(302, redirectUrl);
+      const html = generateHtml(redirectUrl);
+      res.setHeader('Content-Type', 'text/html');
+      res.send(html);
+
+      // const redirectUrl = `${process.env.FRONTEND_URL}/auth/facebook?token=${token.accessToken}&refreshToken=${token.refreshToken}`;
+      // return res.redirect(302, redirectUrl);
     } catch (error) {
       console.error('Error in Facebook authentication', error);
       return res.status(500).send('Facebook authentication failed');
