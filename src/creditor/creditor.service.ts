@@ -13,6 +13,7 @@ import { Creditor } from './entities/creditor.entity';
 import { generateOtp } from '../utils/generateOtp';
 import { NotificationService } from '../notification/notification.service';
 import { ResponseDto } from '../types/response.dto';
+import { getSmsCredit } from '@/utils/getSmsCredit';
 
 const creditorCollection = 'creditor';
 
@@ -148,6 +149,8 @@ export class CreditorService {
         .collection(creditorCollection)
         .add({
           ...createCreditorDto,
+          packageUpdateAt: Date.now(),
+          smsCredit: getSmsCredit('FREE'),
           useNotification: true,
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -190,6 +193,8 @@ export class CreditorService {
           .add({
             ...createCreditorDto,
             password: otp,
+            packageUpdateAt: Date.now(),
+            smsCredit: getSmsCredit('FREE'),
             useNotification: true,
             createdAt: Date.now(),
             updatedAt: Date.now(),

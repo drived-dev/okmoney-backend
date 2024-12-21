@@ -10,6 +10,11 @@ export class AppController {
     return this.appService.testCron();
   }
 
+  @Get('cron/package')
+  testCronPackage() {
+    return this.appService.resetSmsCreditsForCreditors();
+  }
+
   @Get()
   getHello(): string {
     return this.appService.getHello();

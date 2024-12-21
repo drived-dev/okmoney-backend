@@ -63,14 +63,22 @@ export class AppService {
 
           const phoneNumber = debtorDoc.data()?.phoneNumber ?? null;
           if (phoneNumber) {
-            // Send SMS notifications based on the due date
-            return await this.sendReminderSms(
-              phoneNumber,
-              dueDate,
-              loanStatus,
-              now,
-              creditorDoc.id,
-            );
+            const smsCredit = creditorDoc.data()?.smsCredit ?? 0;
+            if (smsCredit > 0) {
+              await this.firebaseRepository.db
+                .collection('creditor')
+                .doc(creditorId)
+                .update({ smsCredit: smsCredit - 1 });
+
+              // Send SMS notifications based on the due date
+              return await this.sendReminderSms(
+                phoneNumber,
+                dueDate,
+                loanStatus,
+                now,
+                creditorDoc.id,
+              );
+            }
           }
         }
         return null;
@@ -126,9 +134,90 @@ export class AppService {
     }
   }
 
-  // @Cron('0 0 * * *') // Cron job to run every day at midnight (adjust as needed)
-  // async handleCron() {
-  //   console.log('Cron job running at midnight to send loan reminders');
-  //   await this.testCron();
-  // }
+  async resetSmsCreditsForCreditors() {
+    console.log('Resetting SMS credits for creditors...');
+
+    const now = new Date();
+    const oneMonthAgo = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      now.getDate(),
+    ).getTime();
+
+    const querySnapshot = await this.firebaseRepository.db
+      .collection('creditor')
+      .get();
+
+    if (querySnapshot.empty) {
+      console.log('No creditors found.');
+      return;
+    }
+
+    const updates = await Promise.all(
+      querySnapshot.docs.map(async (doc) => {
+        const creditorData = doc.data();
+        const { rolePackage, packageUpdateAt, smsCredit } = creditorData;
+
+        if (!rolePackage || packageUpdateAt == null) return null;
+
+        const packageUpdateTime = new Date(packageUpdateAt).getTime();
+
+        // If the last update was more than a month ago
+        if (packageUpdateTime <= oneMonthAgo) {
+          let newSmsCredit = 0;
+
+          // Determine the reset SMS credit based on the rolePackage
+          switch (rolePackage) {
+            case 'FREE':
+              newSmsCredit = 10;
+              break;
+            case 'SMALL':
+              newSmsCredit = 20;
+              break;
+            case 'MEDIUM':
+              newSmsCredit = 30;
+              break;
+            case 'LARGE':
+              newSmsCredit = 40;
+              break;
+            default:
+              console.log(
+                `Unknown rolePackage for creditor ${doc.id}: ${rolePackage}`,
+              );
+              return null;
+          }
+
+          // Update the SMS credit and reset the packageUpdateAt timestamp
+          await this.firebaseRepository.db
+            .collection('creditor')
+            .doc(doc.id)
+            .update({
+              smsCredit: newSmsCredit,
+              packageUpdateAt: Date.now(),
+            });
+
+          console.log(
+            `Reset SMS credit for creditor ${doc.id} to ${newSmsCredit}`,
+          );
+
+          return { id: doc.id, newSmsCredit };
+        }
+        return null;
+      }),
+    );
+
+    const successfulUpdates = updates.filter((update) => update != null);
+    console.log(
+      `Successfully reset SMS credits for ${successfulUpdates.length} creditors.`,
+    );
+
+    return successfulUpdates;
+  }
+
+  @Cron('0 12 * * *') // Cron job to run every day at midday
+  async handleCron() {
+    console.log('Cron job running');
+    await this.testCron();
+    await this.resetSmsCreditsForCreditors();
+  }
 }
