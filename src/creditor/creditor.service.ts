@@ -201,7 +201,7 @@ export class CreditorService {
           });
 
         const data = (await docRef.get()).data();
-        return { id: docRef.id, ...data } as Creditor;
+        //return { id: docRef.id, ...data } as Creditor;
       }
 
       // Send OTP notification.
