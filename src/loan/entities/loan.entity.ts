@@ -29,6 +29,10 @@ export const LoanSchema = z
     dueFromPreviousTerm: z.number().optional(),
     totalBalance: z.number().min(0, 'Total balance is required'),
     totalLoanTerm: z.number().int(),
+    firstPaymentDate: z.coerce
+      .date()
+      .transform((date) => new Date(date).getTime())
+      .optional(),
     loanTermType: z.nativeEnum(LoanTermType),
     loanTermInterval: z.number().int(),
     interestType: z.nativeEnum(InterestType),
