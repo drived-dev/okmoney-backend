@@ -8,7 +8,7 @@ export const CreditorSchema = z
   .object({
     id: z.string(),
     firstName: z.string().optional(),
-    lastName: z.string().optional(),
+    lastName: z.string().nullable().optional(),
     storeName: z.string().min(1, 'Store name is required'),
     phoneNumber: z
       .string()
