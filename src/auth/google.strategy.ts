@@ -33,7 +33,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     const user = await this.authService.validateGoogleUser({
       email: profile.emails[0].value,
       firstName: profile.name.givenName,
-      lastName: profile.name.familyName,
+      lastName: profile.name.familyName ? profile.name.familyName : '',
       storeName: '',
       rolePackage: RolePackage.FREE,
       googleId: profile.id,
