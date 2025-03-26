@@ -8,7 +8,7 @@ import { AxiosError } from 'axios';
 export class NotificationService {
   private apiUrl = 'https://thsms.com/api/send-sms';
   private apiKey = process.env.TH_SMS_API;
-  private useSms = process.env.USE_SMS == 'YES';
+  private useSms = true;
 
   getHello(): string {
     return 'Hello World!';
@@ -18,21 +18,20 @@ export class NotificationService {
 
   async sendSms(to: string, message: string) {
     const data = {
-      msisdn: [to], // Recipient phone number in international format
+      msisdn: [to.replace('+66', '0')], // Recipient phone number in international format
       message: message, // Your message text
       sender: 'Direct SMS',
     };
 
     if (this.useSms) {
       const headers = {
-        Authorization: `Basic ${Buffer.from(`${this.apiKey}`).toString('base64')}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
       };
-
       try {
         const encodedData = qs.stringify(data);
         const response = await lastValueFrom(
-          this.httpService.post(this.apiUrl, encodedData, { headers }),
+          this.httpService.post(this.apiUrl, data, { headers }),
         );
         return response.data;
       } catch (error: unknown) {
