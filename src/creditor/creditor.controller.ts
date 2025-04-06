@@ -5,6 +5,7 @@ import { ApiAuthorizationHeader } from '../utils/auth.decorator';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Logger,
   Patch,
@@ -129,12 +130,12 @@ export class CreditorController {
     return status;
   }
 
-  // @UseGuards(JwtAuthGuard)
-  // @ApiAuthorizationHeader()
-  // @Delete()
-  // @ApiOkResponse({ type: ResponseDto })
-  // async remove(@Req() req: AuthReqType) {
-  //   const status = await this.creditorService.remove(req.user?.id);
-  //   return status;
-  // }
+  @UseGuards(JwtAuthGuard)
+  @ApiAuthorizationHeader()
+  @Delete()
+  @ApiOkResponse({ type: ResponseDto })
+  async remove(@Req() req: AuthReqType) {
+    const status = await this.creditorService.remove(req.user?.id);
+    return status;
+  }
 }
