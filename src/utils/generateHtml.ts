@@ -18,7 +18,7 @@ export function generateHtml(redirectUrl) {
             background-color: #f0f0f0;
           }
           button {
-            background-color: #4CAF50;
+            background-color: #888;
             color: white;
             padding: 20px 40px;
             font-size: 20px;
@@ -28,7 +28,7 @@ export function generateHtml(redirectUrl) {
             transition: background-color 0.3s ease;
           }
           button:hover {
-            background-color: #45a049;
+            background-color: #777;
           }
         </style>
       </head>
