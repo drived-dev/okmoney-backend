@@ -41,6 +41,7 @@ export const CreditorSchema = z
     socialProvider: z.number().int().optional(),
     profileImage: z.string().optional(),
     useNotification: z.boolean().optional(),
+    packageUpdateAt: z.number().optional(),
 
     googleId: z.string().optional(),
     facebookId: z.string().optional(),
