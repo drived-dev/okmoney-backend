@@ -1,13 +1,13 @@
 export function getSmsCredit(rolePackage) {
   switch (rolePackage) {
     case 'FREE':
-      return 10;
-    case 'SMALL':
       return 20;
+    case 'SMALL':
+      return 60;
     case 'MEDIUM':
-      return 30;
+      return 100;
     case 'LARGE':
-      return 40;
+      return 200;
     default:
       return 0;
   }
