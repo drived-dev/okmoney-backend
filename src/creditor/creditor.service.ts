@@ -14,6 +14,7 @@ import { generateOtp } from '../utils/generateOtp';
 import { NotificationService } from '../notification/notification.service';
 import { ResponseDto } from '../types/response.dto';
 import { getSmsCredit } from '@/utils/getSmsCredit';
+import { getDebtorSlot } from '@/utils/getDebtorSlot';
 
 const creditorCollection = 'creditor';
 
@@ -151,6 +152,7 @@ export class CreditorService {
           ...createCreditorDto,
           packageUpdateAt: Date.now(),
           smsCredit: getSmsCredit('FREE'),
+          debtorSlotAvailable: getDebtorSlot('FREE'),
           useNotification: true,
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -195,6 +197,7 @@ export class CreditorService {
             password: otp,
             packageUpdateAt: Date.now(),
             smsCredit: getSmsCredit('FREE'),
+            debtorSlotAvailable: getDebtorSlot('FREE'),
             useNotification: true,
             createdAt: Date.now(),
             updatedAt: Date.now(),
@@ -261,10 +264,21 @@ export class CreditorService {
     try {
       const docRef = await this.findById(creditorId);
 
-      await docRef.update({
-        ...updateCreditorDto,
-        updatedAt: Date.now(),
-      });
+      if (updateCreditorDto.rolePackage) {
+        await docRef.update({
+          ...updateCreditorDto,
+          updatedAt: Date.now(),
+          packageUpdateAt: Date.now(),
+          smsCredit: getSmsCredit(updateCreditorDto.rolePackage),
+          debtorSlotAvailable: getDebtorSlot(updateCreditorDto.rolePackage),
+        });
+      } else {
+        await docRef.update({
+          ...updateCreditorDto,
+          updatedAt: Date.now(),
+        });
+      }
+
       return { success: true, message: 'Creditor updated successfully' };
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {
