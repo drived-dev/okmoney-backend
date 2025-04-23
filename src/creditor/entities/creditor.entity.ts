@@ -46,6 +46,7 @@ export const CreditorSchema = z
     googleId: z.string().optional(),
     facebookId: z.string().optional(),
     lineId: z.string().optional(),
+    appleId: z.string().optional(),
     password: z.string().optional(),
   })
   .strict();

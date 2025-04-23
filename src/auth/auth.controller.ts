@@ -24,6 +24,7 @@ import { FacebookAuthGuard } from './facebook.guard';
 import { RefreshAuthGuard } from './refresh-auth.guard';
 import { RolePackage } from '../creditor/entities/rolePackage.entity';
 import { generateHtml } from '@/utils/generateHtml';
+import { AppleAuthGuard } from './apple.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -87,8 +88,6 @@ export class AuthController {
     const html = generateHtml(redirectUrl);
     res.setHeader('Content-Type', 'text/html');
     res.send(html);
-    //const redirectUrl = `${process.env.BACKEND_URL}/api/auth/app/google?token=${token.accessToken}&refreshToken=${token.refreshToken}&userId=${user.id}`;
-    //return res.redirect(302, redirectUrl);
   }
 
   @UseGuards(LineAuthGuard)
@@ -195,6 +194,29 @@ export class AuthController {
       console.error('Error in Facebook authentication', error);
       return res.status(500).send('Facebook authentication failed');
     }
+  }
+
+  @UseGuards(AppleAuthGuard)
+  @Get('apple/login')
+  appleLogin() {}
+
+  @UseGuards(AppleAuthGuard)
+  @Post('apple/callback')
+  async appleCallback(@Req() req, @Res() res) {
+    const user = req.user;
+    if (!user) {
+      return res.status(400).send('No user found');
+    }
+
+    const token = await this.authService.appleLogin(user);
+    if (typeof token === 'string') {
+      return res.status(400).send(token);
+    }
+
+    const redirectUrl = `${process.env.FRONTEND_URL}/auth/apple?token=${token.accessToken}&refreshToken=${token.refreshToken}`;
+    const html = generateHtml(redirectUrl);
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
   }
 
   @UseGuards(RefreshAuthGuard)

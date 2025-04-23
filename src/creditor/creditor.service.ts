@@ -127,6 +127,22 @@ export class CreditorService {
     return querySnapshot.docs[0].ref;
   }
 
+  async checkAppleId(appleId: string) {
+    if (!appleId) {
+      throw new Error('appleId is required and cannot be empty');
+    }
+    const querySnapshot = await this.firebaseRepository.db
+      .collection(creditorCollection)
+      .where('appleId', '==', appleId)
+      .get();
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    return querySnapshot.docs[0].ref;
+  }
+
   generateProfileImagePath(id: string) {
     return 'profileImage/' + id;
   }

@@ -65,6 +65,22 @@ export class AuthService {
     return await this.creditorService.create(facebookUser);
   }
 
+  async validateAppleUser(appleUser: CreateCreditorDto) {
+    if (!appleUser.appleId) {
+      throw new UnauthorizedException('Apple user ID is required');
+    }
+
+    console.log('apple user ', appleUser.appleId);
+    const user = await this.creditorService.checkAppleId(appleUser.appleId);
+    if (user != null) {
+      console.log('apple user login');
+      return user;
+    }
+
+    console.log('creating user with apple account');
+    return await this.creditorService.create(appleUser);
+  }
+
   async phoneRegister(phoneUser: CreateCreditorDto) {
     if (phoneUser.phoneNumber) {
       return await this.creditorService.createWithPhone(phoneUser);
@@ -133,6 +149,17 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
     return { accessToken, refreshToken };
+  }
+
+  async appleLogin(userId) {
+    const payload: AuthJwtPayload = { type: 'apple', sub: userId };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
   async validateJwtUser(userId: string) {

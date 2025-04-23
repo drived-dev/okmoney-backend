@@ -15,6 +15,8 @@ import { NotificationModule } from '../notification/notification.module';
 import { LineStrategy } from './line.strategy';
 import { HttpModule, HttpService } from '@nestjs/axios';
 import { FacebookStrategy } from './facebook.strategy';
+import { AppleStrategy } from './apple.strategy';
+import { AppleService } from './apple.service';
 
 @Module({
   imports: [
@@ -32,6 +34,7 @@ import { FacebookStrategy } from './facebook.strategy';
     GoogleStrategy,
     LineStrategy,
     FacebookStrategy,
+    AppleStrategy,
     CreditorService,
     {
       provide: 'CONFIGURATION(googleOAuth)', // Provide the "googleOAuth" configuration
