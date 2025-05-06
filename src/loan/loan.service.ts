@@ -170,8 +170,14 @@ export class LoanService {
     const loan = LoanSchema.parse(loanData) as Loan;
     const docRef = await this.findById(loanId);
     const newAmount = loan.remainingBalance - amount;
+    if (newAmount <= 0) {
+      loan.loanStatus = LoanStatus.CLOSED;
+    } else {
+      loan.loanStatus = this.calculateLoanStatus(loan.dueDate);
+    }
     await docRef.update({
       remainingBalance: newAmount,
+      loanStatus: loan.loanStatus,
       updatedAt: Date.now(),
     });
     loan.remainingBalance = newAmount;
@@ -184,11 +190,35 @@ export class LoanService {
   ): Promise<ResponseDto> {
     try {
       const docRef = await this.findById(loanId);
-
-      await docRef.update({
-        ...updateLoanDto,
-        updatedAt: Date.now(),
-      });
+      if (updateLoanDto instanceof UpdateLoanDto) {
+        if (
+          !updateLoanDto.loanStatus &&
+          updateLoanDto.remainingBalance &&
+          updateLoanDto.remainingBalance <= 0
+        ) {
+          await docRef.update({
+            ...updateLoanDto,
+            loanStatus: LoanStatus.CLOSED,
+            updatedAt: Date.now(),
+          });
+        } else if (!updateLoanDto.loanStatus && updateLoanDto.dueDate) {
+          await docRef.update({
+            ...updateLoanDto,
+            loanStatus: this.calculateLoanStatus(updateLoanDto.dueDate),
+            updatedAt: Date.now(),
+          });
+        } else {
+          await docRef.update({
+            ...updateLoanDto,
+            updatedAt: Date.now(),
+          });
+        }
+      } else {
+        await docRef.update({
+          ...updateLoanDto,
+          updatedAt: Date.now(),
+        });
+      }
       return { success: true, message: 'Updated successfully' };
     } catch (err: any) {
       throw new InternalServerErrorException(err?.message, {

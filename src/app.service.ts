@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { FirebaseRepository } from './firebase/firebase.service';
 import { NotificationService } from './notification/notification.service';
+import { LoanStatus } from './loan/entities/loan.entity';
 
 @Injectable()
 export class AppService {
@@ -54,6 +55,10 @@ export class AppService {
 
         // Check if the loan is within the notification windows (2 days before, 1 day before, on due date, or overdue)
         if (this.shouldSendReminder(dueDate, now, dueDates)) {
+          await doc.ref.update({
+            loanStatus: this.calculateLoanStatus(dueDate),
+          });
+
           const debtorDoc = await this.firebaseRepository.db
             .collection('debtor')
             .doc(debtorId)
@@ -90,6 +95,22 @@ export class AppService {
       notifications.filter((phone) => phone != null),
     );
     return notifications.filter((phone) => phone != null);
+  }
+
+  private calculateLoanStatus(dueDate: number): LoanStatus {
+    const now = new Date();
+    const daysToDueDate = Math.ceil(
+      (dueDate - now.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    // due date in range 2 days
+    if (daysToDueDate <= 2 && daysToDueDate > 0) {
+      return LoanStatus.DUE;
+    } else if (daysToDueDate > 2) {
+      return LoanStatus.UNDERDUE;
+    } else {
+      return LoanStatus.OVERDUE;
+    }
   }
 
   private shouldSendReminder(
