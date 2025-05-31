@@ -152,9 +152,14 @@ export class AuthService {
   }
 
   async appleLogin(userId) {
+    console.log('apple user ', userId);
+    const sub =
+      typeof userId === 'string'
+        ? userId
+        : (userId?.id ?? userId?._path?.segments?.[1]);
     const payload: AuthJwtPayload = {
       type: 'apple',
-      sub: userId._path.segments[1],
+      sub,
     };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
